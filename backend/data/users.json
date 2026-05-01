@@ -1,0 +1,66 @@
+[
+  {
+    "user_id": "u001",
+    "full_name": "Alex Morgan",
+    "email": "manager@nexus.com",
+    "password": "password123",
+    "role": "Manager",
+    "is_active": true
+  },
+  {
+    "user_id": "u002",
+    "full_name": "Maya Tran",
+    "email": "leader.aps@nexus.com",
+    "password": "password123",
+    "role": "Leader",
+    "is_active": true
+  },
+  {
+    "user_id": "u003",
+    "full_name": "William Anderson",
+    "email": "leader.mufg@nexus.com",
+    "password": "password123",
+    "role": "Leader",
+    "is_active": true
+  },
+  {
+    "user_id": "u004",
+    "full_name": "Nguyen Hanh",
+    "email": "op.hanh@nexus.com",
+    "password": "password123",
+    "role": "Operator",
+    "is_active": true
+  },
+  {
+    "user_id": "u005",
+    "full_name": "Adam Tran",
+    "email": "op.adam@nexus.com",
+    "password": "password123",
+    "role": "Operator",
+    "is_active": true
+  },
+  {
+    "user_id": "u006",
+    "full_name": "Amy Do",
+    "email": "op.amy@nexus.com",
+    "password": "password123",
+    "role": "Operator",
+    "is_active": true
+  },
+  {
+    "user_id": "u007",
+    "full_name": "Sarah Kim",
+    "email": "op.sarah@nexus.com",
+    "password": "password123",
+    "role": "Operator",
+    "is_active": true
+  },
+  {
+    "user_id": "u008",
+    "full_name": "Keith Duong",
+    "email": "op.keith@nexus.com",
+    "password": "password123",
+    "role": "Operator",
+    "is_active": true
+  }
+]

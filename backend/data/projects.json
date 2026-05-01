@@ -1,0 +1,35 @@
+[
+  {
+    "project_id": "p001",
+    "project_code": "APS-2026",
+    "project_name": "Annual Performance Summary 2026",
+    "description": "Deutsche Bahn & BMW annual performance reports for 2026",
+    "start_date": "2026-01-01",
+    "end_date": "2026-03-31",
+    "leader_id": "u002",
+    "status": "Active",
+    "sla_target": 90.0
+  },
+  {
+    "project_id": "p002",
+    "project_code": "MUFG-EMEA",
+    "project_name": "MUFG EMEA Data Operations",
+    "description": "MUFG EMEA quarterly data validation and reporting",
+    "start_date": "2026-01-15",
+    "end_date": "2026-06-30",
+    "leader_id": "u003",
+    "status": "Active",
+    "sla_target": 85.0
+  },
+  {
+    "project_id": "p003",
+    "project_code": "DV-2025",
+    "project_name": "Data Validation 2025",
+    "description": "Legacy data validation for 2025 annual reports",
+    "start_date": "2025-07-01",
+    "end_date": "2025-12-31",
+    "leader_id": "u002",
+    "status": "Completed",
+    "sla_target": 80.0
+  }
+]
