@@ -1,7 +1,7 @@
 [
   {
     "project_id": "p001",
-    "project_code": "APS-2026",
+    "project_code": "ESG-2026",
     "project_name": "Annual Performance Summary 2026",
     "description": "Deutsche Bahn & BMW annual performance reports for 2026",
     "start_date": "2026-01-01",
@@ -12,9 +12,9 @@
   },
   {
     "project_id": "p002",
-    "project_code": "MUFG-EMEA",
-    "project_name": "MUFG EMEA Data Operations",
-    "description": "MUFG EMEA quarterly data validation and reporting",
+    "project_code": "Banking-EMEA",
+    "project_name": "Banking EMEA Data Operations",
+    "description": "Banking EMEA quarterly data validation and reporting",
     "start_date": "2026-01-15",
     "end_date": "2026-06-30",
     "leader_id": "u003",

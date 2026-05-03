@@ -1,16 +1,20 @@
 from fastapi import APIRouter, HTTPException, Depends
-from models import LoginRequest
+from sqlmodel import Session, select
+from database import get_session
+from models import User, LoginRequest
 from auth import create_token, get_current_user
-import store
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login")
-def login(body: LoginRequest):
-    user = store.user_index_by_email.get(body.email)
+def login(body: LoginRequest, session: Session = Depends(get_session)):
+    statement = select(User).where(User.email == body.email)
+    user = session.exec(statement).first()
+    
     if not user or not user.is_active or user.password != body.password:
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    
     token = create_token(user.user_id, user.email, user.role, user.full_name)
     return {
         "access_token": token,

@@ -10,7 +10,7 @@
   {
     "user_id": "u002",
     "full_name": "Maya Tran",
-    "email": "leader.aps@nexus.com",
+    "email": "leader.ESG@nexus.com",
     "password": "password123",
     "role": "Leader",
     "is_active": true
@@ -18,7 +18,7 @@
   {
     "user_id": "u003",
     "full_name": "William Anderson",
-    "email": "leader.mufg@nexus.com",
+    "email": "leader.Banking@nexus.com",
     "password": "password123",
     "role": "Leader",
     "is_active": true

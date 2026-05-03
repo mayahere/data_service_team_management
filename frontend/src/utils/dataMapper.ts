@@ -23,8 +23,8 @@ function getInitials(name: string): string {
 }
 
 const PROJECT_COLORS: Record<string, string> = {
-  'APS-2026': 'blue',
-  'MUFG-EMEA': 'violet',
+  'ESG-2026': 'blue',
+  'Banking-EMEA': 'violet',
   'DV-2025': 'emerald',
 };
 
@@ -269,8 +269,8 @@ export function computeProjectHealth(
       openIssues.filter((i) => i.issuePriority === 'Critical').length > 0 || sla < 75
         ? 'critical'
         : openIssues.length > 2 || sla < p.slaStatus.slaTarget
-        ? 'at-risk'
-        : 'healthy';
+          ? 'at-risk'
+          : 'healthy';
 
     return {
       id: p.id,

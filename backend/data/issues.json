@@ -92,7 +92,7 @@
   {
     "issue_id": "iss-007",
     "issue_code": "ISS-0007",
-    "issue_title": "Missing table in MUFG Q2 report",
+    "issue_title": "Missing table in Banking Q2 report",
     "description": "Comparative figures table for Q2 2025 is absent from the report",
     "status": "Open",
     "issue_priority": "High",

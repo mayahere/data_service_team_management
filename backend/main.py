@@ -2,12 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
+from sqlmodel import SQLModel
+import models
+from database import engine
 import seed
 from routers import auth_router, projects, tasks, issues, users, reports
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    SQLModel.metadata.create_all(engine)
     seed.load_all()
     yield
 

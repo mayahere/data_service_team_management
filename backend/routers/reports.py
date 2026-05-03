@@ -2,36 +2,37 @@ import io
 import csv
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from sqlmodel import Session, select
+from sqlalchemy import func
+from database import get_session
+from models import Project, Task, Issue, User
 from auth import get_current_user, require_manager
-import store
+from routers.projects import compute_sla_status
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 @router.get("/summary")
-def dashboard_summary(user: dict = Depends(get_current_user)):
+def dashboard_summary(user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
     role = user["role"]
 
     if role == "Manager":
-        visible_projects = store.projects
-        visible_tasks = store.tasks
-        visible_issues = store.issues
+        visible_projects = session.exec(select(Project)).all()
+        visible_tasks = session.exec(select(Task)).all()
+        visible_issues = session.exec(select(Issue)).all()
     elif role == "Leader":
-        leader_projects = {p.project_id for p in store.projects if p.leader_id == user["sub"]}
-        visible_projects = [p for p in store.projects if p.project_id in leader_projects]
-        visible_tasks = [t for t in store.tasks if t.project_id in leader_projects]
-        visible_issues = [i for i in store.issues if i.project_id in leader_projects]
+        leader_projects = session.exec(select(Project.project_id).where(Project.leader_id == user["sub"])).all()
+        visible_projects = session.exec(select(Project).where(Project.project_id.in_(leader_projects))).all()
+        visible_tasks = session.exec(select(Task).where(Task.project_id.in_(leader_projects))).all()
+        visible_issues = session.exec(select(Issue).where(Issue.project_id.in_(leader_projects))).all()
     else:
-        visible_tasks = [
-            t for t in store.tasks
-            if t.assignee_id == user["sub"] or t.reviewer_id == user["sub"]
-        ]
+        visible_tasks = session.exec(select(Task).where((Task.assignee_id == user["sub"]) | (Task.reviewer_id == user["sub"]))).all()
         task_project_ids = {t.project_id for t in visible_tasks}
-        visible_projects = [p for p in store.projects if p.project_id in task_project_ids]
-        visible_issues = [
-            i for i in store.issues
-            if i.assignee_id == user["sub"] or i.reviewer_id == user["sub"]
-        ]
+        if task_project_ids:
+            visible_projects = session.exec(select(Project).where(Project.project_id.in_(task_project_ids))).all()
+        else:
+            visible_projects = []
+        visible_issues = session.exec(select(Issue).where((Issue.assignee_id == user["sub"]) | (Issue.reviewer_id == user["sub"]))).all()
 
     status_counts = {}
     for t in visible_tasks:
@@ -43,11 +44,11 @@ def dashboard_summary(user: dict = Depends(get_current_user)):
 
     project_summaries = []
     for p in visible_projects:
-        sla = store.compute_sla_status(p.project_id)
+        sla = compute_sla_status(session, p)
         project_tasks = [t for t in visible_tasks if t.project_id == p.project_id]
         project_issues = [i for i in visible_issues if i.project_id == p.project_id]
         open_issues = [i for i in project_issues if i.status != "Resolved"]
-        leader = store.user_index_by_id.get(p.leader_id)
+        leader = session.get(User, p.leader_id)
         project_summaries.append({
             "project_id": p.project_id,
             "project_code": p.project_code,
@@ -73,7 +74,7 @@ def dashboard_summary(user: dict = Depends(get_current_user)):
         "top_priority_issues": [
             {
                 **i.model_dump(),
-                "task_title": (store.task_index.get(i.task_id).title if i.task_id and store.task_index.get(i.task_id) else None),
+                "task_title": (session.get(Task, i.task_id).title if i.task_id else None),
             }
             for i in sorted(open_critical, key=lambda x: ({"Critical": 0, "High": 1}.get(x.issue_priority, 9)))[:5]
         ],
@@ -81,13 +82,16 @@ def dashboard_summary(user: dict = Depends(get_current_user)):
 
 
 @router.get("/export")
-def export_csv(user: dict = Depends(require_manager)):
+def export_csv(user: dict = Depends(require_manager), session: Session = Depends(get_session)):
     rows = []
-    for t in store.tasks:
-        assignee = store.user_index_by_id.get(t.assignee_id) if t.assignee_id else None
-        reviewer = store.user_index_by_id.get(t.reviewer_id) if t.reviewer_id else None
-        project = store.project_index.get(t.project_id)
-        sla = store.compute_sla_status(t.project_id)
+    tasks = session.exec(select(Task)).all()
+    for t in tasks:
+        assignee = session.get(User, t.assignee_id) if t.assignee_id else None
+        reviewer = session.get(User, t.reviewer_id) if t.reviewer_id else None
+        project = session.get(Project, t.project_id)
+        sla = compute_sla_status(session, project) if project else {"status": "Unknown", "sla_actual": None, "sla_target": None}
+        issue_count = session.exec(select(func.count(Issue.issue_id)).where(Issue.task_id == t.task_id)).one()
+        
         rows.append({
             "task_id": t.task_id,
             "title": t.title,
@@ -100,7 +104,7 @@ def export_csv(user: dict = Depends(require_manager)):
             "reviewer": reviewer.full_name if reviewer else "",
             "due_date": t.due_date,
             "completed_at": t.completed_at or "",
-            "issue_count": len(store.task_issue_map.get(t.task_id, [])),
+            "issue_count": issue_count,
             "sla_status": sla["status"],
             "sla_actual": sla["sla_actual"] or "",
             "sla_target": sla["sla_target"] or "",

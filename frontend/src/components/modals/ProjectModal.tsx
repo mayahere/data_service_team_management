@@ -154,7 +154,7 @@ export function ProjectModal({ open, project, users, onClose, onSaved, onError }
                     value={form.project_code}
                     onChange={(e) => set('project_code', e.target.value)}
                     disabled={!!project}
-                    placeholder="e.g. APS-2026"
+                    placeholder="e.g. ESG-2026"
                   />
                   {errors.project_code && <p className={errCls}>{errors.project_code}</p>}
                 </div>

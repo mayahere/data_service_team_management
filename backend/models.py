@@ -1,64 +1,65 @@
+from sqlmodel import SQLModel, Field
 from pydantic import BaseModel
 from typing import Optional
 
 
-class User(BaseModel):
-    user_id: str
+class User(SQLModel, table=True):
+    user_id: str = Field(primary_key=True)
     full_name: str
-    email: str
+    email: str = Field(index=True)
     password: str
     role: str  # Manager | Leader | Operator
     is_active: bool = True
 
 
-class Project(BaseModel):
-    project_id: str
-    project_code: str
+class Project(SQLModel, table=True):
+    project_id: str = Field(primary_key=True)
+    project_code: str = Field(unique=True, index=True)
     project_name: str
     description: str
     start_date: str
     end_date: str
-    leader_id: str
+    leader_id: str = Field(index=True)
     status: str  # Active | Completed | On Hold
     sla_target: float = 85.0
 
 
-class Task(BaseModel):
-    task_id: str
+class Task(SQLModel, table=True):
+    task_id: str = Field(primary_key=True)
     title: str
     description: str
     url: Optional[str] = None
-    status: str  # Not Started | In Progress | Completed | Approved | Rejected
+    status: str = Field(index=True)  # Not Started | In Progress | Completed | Approved | Rejected
     type: str    # Annotation | Review
     task_priority: str  # Low | Medium | High | Critical
-    project_id: str
-    assignee_id: Optional[str] = None
-    reviewer_id: Optional[str] = None
+    project_id: str = Field(index=True)
+    assignee_id: Optional[str] = Field(default=None, index=True)
+    reviewer_id: Optional[str] = Field(default=None, index=True)
     due_date: str
     completed_at: Optional[str] = None
     created_at: str
     updated_at: str
 
 
-class Issue(BaseModel):
-    issue_id: str
-    issue_code: str
+class Issue(SQLModel, table=True):
+    issue_id: str = Field(primary_key=True)
+    issue_code: str = Field(unique=True)
     issue_title: str
     description: str
-    status: str  # Open | In Progress | Resolved
+    status: str = Field(index=True)  # Open | In Progress | Resolved
     issue_priority: str  # Low | Medium | High | Critical
-    project_id: str
-    task_id: Optional[str] = None
-    assignee_id: Optional[str] = None
-    reviewer_id: Optional[str] = None
+    project_id: str = Field(index=True)
+    task_id: Optional[str] = Field(default=None, index=True)
+    assignee_id: Optional[str] = Field(default=None, index=True)
+    reviewer_id: Optional[str] = Field(default=None, index=True)
     due_date: Optional[str] = None
     resolved_at: Optional[str] = None
     created_at: str
 
 
-class Attachment(BaseModel):
-    attachment_id: str
-    issue_id: str
+class Attachment(SQLModel, table=True):
+    attachment_id: str = Field(primary_key=True)
+    issue_id: str = Field(index=True)
     file_url: str
     uploaded_by: str  # user_id
     created_at: str

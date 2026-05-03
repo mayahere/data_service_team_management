@@ -65,8 +65,8 @@
   },
   {
     "task_id": "t005",
-    "title": "MUFG Report Q1",
-    "description": "Annotate MUFG Q1 quarterly report",
+    "title": "Banking Report Q1",
+    "description": "Annotate Banking Q1 quarterly report",
     "url": "https://example.com/task/t005",
     "status": "Not Started",
     "type": "Annotation",
@@ -81,8 +81,8 @@
   },
   {
     "task_id": "t006",
-    "title": "MUFG Report Q1",
-    "description": "Review MUFG Q1 quarterly report",
+    "title": "Banking Report Q1",
+    "description": "Review Banking Q1 quarterly report",
     "url": "https://example.com/task/t006",
     "status": "In Progress",
     "type": "Review",
@@ -145,8 +145,8 @@
   },
   {
     "task_id": "t010",
-    "title": "MUFG Report Q2",
-    "description": "Annotate MUFG Q2 quarterly report",
+    "title": "Banking Report Q2",
+    "description": "Annotate Banking Q2 quarterly report",
     "url": "https://example.com/task/t010",
     "status": "Not Started",
     "type": "Annotation",
@@ -161,8 +161,8 @@
   },
   {
     "task_id": "t011",
-    "title": "MUFG Report Q2",
-    "description": "Review MUFG Q2 quarterly report",
+    "title": "Banking Report Q2",
+    "description": "Review Banking Q2 quarterly report",
     "url": "https://example.com/task/t011",
     "status": "Completed",
     "type": "Review",
