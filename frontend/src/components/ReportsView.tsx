@@ -126,7 +126,7 @@ export function ReportsView({ kpis, sla }: ReportsViewProps) {
                 </p>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>SLA Compliance</strong> is currently at{' '}
+                    <strong># Days turn-around Compliance</strong> is currently at{' '}
                     <strong>{sla.compliance}%</strong> ({sla.approved} approved of {sla.totalTasks} total tasks).
                   </li>
                   <li>

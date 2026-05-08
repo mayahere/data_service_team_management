@@ -29,6 +29,7 @@ class Task(SQLModel, table=True):
     title: str
     description: str
     url: Optional[str] = None
+    task_note: Optional[str] = None
     status: str = Field(index=True)  # Not Started | In Progress | Completed | Approved | Rejected
     type: str    # Annotation | Review
     task_priority: str  # Low | Medium | High | Critical
@@ -49,11 +50,13 @@ class Issue(SQLModel, table=True):
     status: str = Field(index=True)  # Open | In Progress | Resolved
     issue_priority: str  # Low | Medium | High | Critical
     project_id: str = Field(index=True)
-    task_id: Optional[str] = Field(default=None, index=True)
+    task_id: str = Field(index=True)
     assignee_id: Optional[str] = Field(default=None, index=True)
     reviewer_id: Optional[str] = Field(default=None, index=True)
     due_date: Optional[str] = None
     resolved_at: Optional[str] = None
+    issue_note: Optional[str] = None
+    issue_url: Optional[str] = None
     created_at: str
 
 
@@ -97,18 +100,20 @@ class TaskCreate(BaseModel):
     title: str
     description: str
     url: Optional[str] = None
+    task_note: Optional[str] = None
     type: str
     task_priority: str
     project_id: str
     assignee_id: Optional[str] = None
     reviewer_id: Optional[str] = None
-    due_date: str
+    due_date: Optional[str] = None
 
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     url: Optional[str] = None
+    task_note: Optional[str] = None
     type: Optional[str] = None
     task_priority: Optional[str] = None
     assignee_id: Optional[str] = None
@@ -130,10 +135,12 @@ class IssueCreate(BaseModel):
     description: str
     issue_priority: str
     project_id: str
-    task_id: Optional[str] = None
+    task_id: str
     assignee_id: Optional[str] = None
     reviewer_id: Optional[str] = None
     due_date: Optional[str] = None
+    issue_note: Optional[str] = None
+    issue_url: Optional[str] = None
 
 
 class IssueUpdate(BaseModel):
@@ -145,3 +152,5 @@ class IssueUpdate(BaseModel):
     reviewer_id: Optional[str] = None
     due_date: Optional[str] = None
     resolved_at: Optional[str] = None
+    issue_note: Optional[str] = None
+    issue_url: Optional[str] = None

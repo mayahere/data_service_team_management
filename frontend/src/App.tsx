@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
@@ -16,7 +16,7 @@ import { Role } from './types/dashboard';
 
 function AppContent() {
   const { user } = useAuth();
-  const [activeView, setActiveView] = useState<string>('scan');
+  const location = useLocation();
   const {
     project,
     projects,
@@ -59,52 +59,9 @@ function AppContent() {
     );
   }
 
-  const renderView = () => {
-    switch (activeView) {
-      case 'scan':
-        return (
-          <DashboardView
-            role={activeRole}
-            project={project}
-            projects={projects}
-            tasks={tasks}
-            alerts={alerts}
-            kpis={kpis}
-            sla={sla}
-            projectHealth={projectHealth}
-          />
-        );
-      case 'projects':
-        return <ProjectsView projects={projects} users={users} refresh={refresh} />;
-      case 'prioritise':
-        return <TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />;
-      case 'triage':
-        return <IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />;
-      case 'monitor':
-        return <PerformanceView operators={operators} kpis={kpis} projects={projects} />;
-      case 'report':
-        return <ReportsView kpis={kpis} sla={sla} project={project} />;
-      default:
-        return (
-          <DashboardView
-            role={activeRole}
-            project={project}
-            projects={projects}
-            tasks={tasks}
-            alerts={alerts}
-            kpis={kpis}
-            sla={sla}
-            projectHealth={projectHealth}
-          />
-        );
-    }
-  };
-
   return (
     <div className="flex h-screen w-full bg-slate-50 overflow-hidden font-sans text-slate-900">
       <Sidebar
-        activeView={activeView}
-        onViewChange={setActiveView}
         activeRole={activeRole}
         onRoleChange={() => {}}
         alertCounts={alertCounts}
@@ -112,14 +69,30 @@ function AppContent() {
       <main className="flex-1 overflow-y-auto relative">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeView}
+            key={location.pathname}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="min-h-full"
           >
-            {renderView()}
+            <Routes location={location}>
+              <Route path="/" element={<Navigate to="/overview" replace />} />
+              <Route path="/overview" element={
+                <DashboardView role={activeRole} project={project} projects={projects} tasks={tasks} alerts={alerts} kpis={kpis} sla={sla} projectHealth={projectHealth} />
+              } />
+              <Route path="/projects" element={<ProjectsView projects={projects} users={users} refresh={refresh} />} />
+              <Route path="/projects/:project_id/tasks" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />
+              <Route path="/projects/:project_id/tasks/:task_id" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />
+              <Route path="/projects/:project_id/tasks/:task_id/issues" element={<IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />} />
+              <Route path="/projects/:project_id/tasks/:task_id/issues/:issue_id" element={<IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />} />
+              <Route path="/tasks" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />
+              <Route path="/tasks/:task_id" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />
+              <Route path="/issues" element={<IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />} />
+              <Route path="/issues/:issue_id" element={<IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />} />
+              <Route path="/monitor" element={<PerformanceView operators={operators} kpis={kpis} projects={projects} />} />
+              <Route path="/report" element={<ReportsView kpis={kpis} sla={sla} project={project} />} />
+            </Routes>
           </motion.div>
         </AnimatePresence>
       </main>
@@ -130,10 +103,12 @@ function AppContent() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

@@ -11,9 +11,9 @@ import {
 import { Role } from '../types/dashboard';
 import { classNames } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 interface SidebarProps {
-  activeView: string;
-  onViewChange: (view: string) => void;
   activeRole: Role;
   onRoleChange: (role: Role) => void;
   alertCounts: {
@@ -22,45 +22,45 @@ interface SidebarProps {
   };
 }
 export function Sidebar({
-  activeView,
-  onViewChange,
   activeRole: _activeRole,
   onRoleChange: _onRoleChange,
   alertCounts
 }: SidebarProps) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const navItems = [
   {
-    id: 'scan',
+    path: '/overview',
     label: 'Overview',
     icon: LayoutDashboard
   },
   {
-    id: 'projects',
+    path: '/projects',
     label: 'Projects',
     icon: FolderKanban
   },
   {
-    id: 'prioritise',
+    path: '/tasks',
     label: 'Task Queue',
     icon: ListChecks,
     badge: alertCounts.tasksAtRisk > 0 ? alertCounts.tasksAtRisk : undefined,
     badgeColor: 'bg-amber-500'
   },
   {
-    id: 'triage',
+    path: '/issues',
     label: 'Issues',
     icon: AlertTriangle,
     badge: alertCounts.errors > 0 ? alertCounts.errors : undefined,
     badgeColor: 'bg-red-500'
   },
   {
-    id: 'monitor',
+    path: '/monitor',
     label: 'Performance',
     icon: BarChart3
   },
   {
-    id: 'report',
+    path: '/report',
     label: 'Reports',
     icon: FileText
   }];
@@ -78,12 +78,12 @@ export function Sidebar({
       {/* Navigation */}
       <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = activeView === item.id;
+          const isActive = location.pathname.startsWith(item.path);
           const Icon = item.icon;
           return (
             <button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
+              key={item.path}
+              onClick={() => navigate(item.path)}
               className={classNames(
                 'w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-colors duration-150 text-sm font-medium',
                 isActive ?

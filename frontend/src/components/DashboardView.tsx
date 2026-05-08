@@ -185,7 +185,7 @@ export function DashboardView({
       {/* SLA Overview */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm mt-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-slate-900">SLA Overview</h3>
+          <h3 className="text-sm font-semibold text-slate-900"># Days turn-around Overview</h3>
           <span className="text-xs font-medium text-slate-500">
             {sla.totalTasks} Total Tasks
           </span>
@@ -626,7 +626,7 @@ export function DashboardView({
                       {project.slaCompliance ?? 0}%
                     </p>
                     <p className="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">
-                      SLA
+                      # Days turn-around
                     </p>
                   </div>
                 </div>

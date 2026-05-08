@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Filter,
   Search,
@@ -10,7 +11,7 @@ import {
   Plus,
   Pencil,
   Trash2,
-  RefreshCw,
+  ArrowRightCircle,
   CheckSquare,
 } from "lucide-react";
 import {
@@ -29,6 +30,7 @@ import {
 import { Task, Project, AppUser } from "../types/dashboard";
 import { classNames, getProjectColors } from "../utils/formatters";
 import { TaskModal } from "./modals/TaskModal";
+import { TaskSidePanel } from "./TaskSidePanel";
 import { ReviewModal } from "./modals/ReviewModal";
 import { StatusModal } from "./modals/StatusModal";
 import { ConfirmDialog } from "./modals/ConfirmDialog";
@@ -53,6 +55,8 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
+  const [reviewerFilter, setReviewerFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [sortConfig, setSortConfig] = useState<{
     key: keyof Task | "project";
@@ -61,6 +65,13 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
 
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const { project_id, task_id } = useParams();
+  const navigate = useNavigate();
+
+  const selectedSideTask = useMemo(() => {
+    if (!task_id) return null;
+    return tasks.find(t => t.id === task_id) || null;
+  }, [task_id, tasks]);
   const [reviewTask, setReviewTask] = useState<Task | null>(null);
   const [statusTask, setStatusTask] = useState<Task | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
@@ -81,7 +92,12 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
         projectFilter === "all" || task.projectId === projectFilter;
       const matchesPriority =
         priorityFilter === "all" || task.taskPriority === priorityFilter;
-      return matchesSearch && matchesStatus && matchesProject && matchesPriority;
+      const matchesAssignee =
+        assigneeFilter === "all" || task.assigneeId === assigneeFilter;
+      const matchesReviewer =
+        reviewerFilter === "all" || task.reviewerId === reviewerFilter;
+      const matchesRouteProject = project_id ? task.projectId === project_id : true;
+      return matchesSearch && matchesStatus && matchesProject && matchesPriority && matchesAssignee && matchesReviewer && matchesRouteProject;
     });
 
     if (sortConfig) {
@@ -108,9 +124,11 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
         }
         return 0;
       });
+    } else {
+      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
     return filtered;
-  }, [tasks, projects, searchTerm, statusFilter, projectFilter, priorityFilter, sortConfig]);
+  }, [tasks, projects, searchTerm, statusFilter, projectFilter, priorityFilter, sortConfig, assigneeFilter, reviewerFilter, project_id]);
 
   const handleSort = (key: keyof Task | "project") => {
     let direction: "asc" | "desc" = "asc";
@@ -358,13 +376,14 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
               className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
             />
           </div>
+        </div>
 
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-slate-400" />
             <select
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
-              className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+              className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
             >
               <option value="all">All Projects</option>
               {projects.map((p) => (
@@ -373,12 +392,38 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
             </select>
           </div>
 
+          <div className="flex items-center space-x-2">
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+            >
+              <option value="all">Assignees</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>{user.fullName}</option>
+              ))} 
+            </select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <select
+              value={reviewerFilter}
+              onChange={(e) => setReviewerFilter(e.target.value)}
+              className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+            >
+              <option value="all">Reviewers</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>{user.fullName}</option>
+              ))} 
+            </select>
+          </div>
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+            className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
           >
-            <option value="all">All Statuses</option>
+            <option value="all">Statuses</option>
             <option value="Not Started">Not Started</option>
             <option value="In Progress">In Progress</option>
             <option value="Completed">Completed</option>
@@ -389,20 +434,17 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
+            className="border border-slate-200 rounded-lg text-sm py-2 pl-3 pr-2 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
           >
-            <option value="all">All Priorities</option>
+            <option value="all">Priorities</option>
             <option value="Critical">Critical</option>
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
           </select>
-        </div>
-
-        <div className="text-sm text-slate-500 font-medium">Showing {filteredTasks.length} tasks</div>
       </div>
-
       {/* Main Table */}
+      <div className="text-sm text-slate-500 font-medium">Showing {filteredTasks.length} tasks</div>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
@@ -416,6 +458,9 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => handleSort("assigneeName")}>
                   <div className="flex items-center">Assignee <ArrowUpDown className="w-3 h-3 ml-1" /></div>
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => handleSort("assigneeName")}>
+                  <div className="flex items-center">Reviewer <ArrowUpDown className="w-3 h-3 ml-1" /></div>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => handleSort("status")}>
                   <div className="flex items-center">Status <ArrowUpDown className="w-3 h-3 ml-1" /></div>
@@ -438,7 +483,14 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                 const canReview = (canManage || task.reviewerId === user?.userId) && task.status === "Completed";
                 const canUpdateStatus = task.status !== "Approved" && task.status !== "Rejected" && task.status !== "Completed";
                 return (
-                  <tr key={task.id} className="hover:bg-slate-50 transition-colors group">
+                  <tr 
+                    key={task.id} 
+                    className="hover:bg-slate-50 transition-colors group cursor-pointer" 
+                    onClick={() => {
+                      const baseUrl = project_id ? `/projects/${project_id}/tasks` : '/tasks';
+                      navigate(`${baseUrl}/${task.id}`);
+                    }}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-slate-900 truncate max-w-[180px]" title={task.title}>
@@ -477,6 +529,18 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      {task.reviewerName ? (
+                        <div className="flex items-center">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600 mr-2">
+                            {task.reviewerName.split(" ").map((n) => n[0]).join("")}
+                          </div>
+                          <span className="text-sm text-slate-700">{task.reviewerName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-slate-400 italic">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className={classNames("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium", getStatusColor(task.status))}>
                         {task.status}
                       </span>
@@ -498,7 +562,7 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                         {task.taskPriority}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         {/* Update status */}
                         {canUpdateStatus && (
@@ -507,7 +571,7 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                             title="Update status"
                             className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           >
-                            <RefreshCw className="w-4 h-4" />
+                            <ArrowRightCircle className="w-4 h-4" />
                           </button>
                         )}
                         {/* Review (approve/reject) */}
@@ -599,6 +663,18 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <TaskSidePanel
+        open={!!selectedSideTask}
+        task={selectedSideTask}
+        projects={projects}
+        users={users}
+        onClose={() => navigate(project_id ? `/projects/${project_id}/tasks` : '/tasks')}
+        onTaskUpdate={() => {
+          refresh();
+        }}
+        onError={(msg) => addToast(msg, "error")}
       />
     </div>
   );

@@ -1,9 +1,10 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 
 from sqlmodel import SQLModel
-import models
 from database import engine
 import seed
 from routers import auth_router, projects, tasks, issues, users, reports
@@ -12,6 +13,27 @@ from routers import auth_router, projects, tasks, issues, users, reports
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     SQLModel.metadata.create_all(engine)
+    try:
+        from sqlmodel import Session, text
+        with Session(engine) as session:
+            session.exec(text("ALTER TABLE task ADD COLUMN task_note VARCHAR;"))
+            session.commit()
+    except Exception:
+        pass
+    try:
+        from sqlmodel import Session, text
+        with Session(engine) as session:
+            session.exec(text("ALTER TABLE issue ADD COLUMN issue_note VARCHAR;"))
+            session.commit()
+    except Exception:
+        pass
+    try:
+        from sqlmodel import Session, text
+        with Session(engine) as session:
+            session.exec(text("ALTER TABLE issue ADD COLUMN issue_url VARCHAR;"))
+            session.commit()
+    except Exception:
+        pass
     seed.load_all()
     yield
 
@@ -25,6 +47,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(auth_router.router)
 app.include_router(projects.router)

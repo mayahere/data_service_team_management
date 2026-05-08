@@ -1,6 +1,8 @@
 import uuid
 import datetime
-from fastapi import APIRouter, Depends, HTTPException
+import shutil
+import os
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlmodel import Session, select
 from sqlalchemy import func
 from database import get_session
@@ -91,12 +93,23 @@ def create_issue(body: IssueCreate, user: dict = Depends(get_current_user), sess
 
     now = datetime.datetime.utcnow().isoformat()
     new_id = f"iss-{uuid.uuid4().hex[:6]}"
+    
+    body_dict = body.model_dump()
+    due_date = body_dict.get("due_date")
+    if body_dict.get("task_id"):
+        task = session.get(Task, body_dict["task_id"])
+        if task:
+            due_date = task.due_date
+    if "due_date" in body_dict:
+        del body_dict["due_date"]
+
     issue = Issue(
         issue_id=new_id,
         issue_code=issue_code,
         status="Open",
         created_at=now,
-        **body.model_dump(),
+        due_date=due_date,
+        **body_dict,
     )
     session.add(issue)
     session.commit()
@@ -128,6 +141,34 @@ def update_issue(issue_id: str, body: IssueUpdate, user: dict = Depends(get_curr
     session.add(i)
     session.commit()
     session.refresh(i)
+    return _enrich(session, i)
+
+@router.post("/{issue_id}/upload")
+def upload_issue_image(issue_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
+    i = session.get(Issue, issue_id)
+    if not i:
+        raise HTTPException(status_code=404, detail="Issue not found")
+
+    if user["role"] == "Operator":
+        if i.assignee_id != user["sub"] and i.reviewer_id != user["sub"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+    elif user["role"] == "Leader":
+        leader_projects = session.exec(select(Project.project_id).where(Project.leader_id == user["sub"])).all()
+        if i.project_id not in leader_projects:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+    ext = file.filename.split('.')[-1] if '.' in file.filename else 'bin'
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join("uploads", filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    i.issue_url = f"http://localhost:8000/uploads/{filename}"
+    session.add(i)
+    session.commit()
+    session.refresh(i)
+    
     return _enrich(session, i)
 
 

@@ -29,6 +29,7 @@ export interface Task {
   title: string;
   description: string;
   url: string | null;
+  taskNote: string | null;
   status: TaskStatus;
   type: string;
   taskPriority: TaskPriority;
@@ -57,6 +58,8 @@ export interface Issue {
   reviewerId: string | null;
   dueDate: string | null;
   resolvedAt: string | null;
+  issueNote: string | null;
+  issueUrl: string | null;
   createdAt: string;
   assigneeName: string | null;
   reviewerName: string | null;

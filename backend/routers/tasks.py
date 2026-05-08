@@ -89,14 +89,22 @@ def create_task(body: TaskCreate, user: dict = Depends(require_manager_or_leader
         if body.project_id not in leader_projects:
             raise HTTPException(status_code=403, detail="Access denied to this project")
 
-    now = datetime.datetime.utcnow().isoformat()
+    now_dt = datetime.datetime.utcnow()
+    now = now_dt.isoformat()
+    due_date = (now_dt + datetime.timedelta(days=3)).isoformat()
+
     new_id = f"t{uuid.uuid4().hex[:6]}"
+    body_dict = body.model_dump()
+    if "due_date" in body_dict:
+        del body_dict["due_date"]
+
     task = Task(
         task_id=new_id,
         status="Not Started",
         created_at=now,
         updated_at=now,
-        **body.model_dump(),
+        due_date=due_date,
+        **body_dict,
     )
     session.add(task)
     session.commit()
