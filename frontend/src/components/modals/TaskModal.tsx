@@ -85,7 +85,6 @@ export function TaskModal({
     if (!form.title.trim()) e.title = 'Title is required';
     if (!form.project_id) e.project_id = 'Project is required';
     if (!form.task_priority) e.task_priority = 'Priority is required';
-    if (!form.due_date) e.due_date = 'Due date is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -241,15 +240,15 @@ export function TaskModal({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Due Date <span className="text-red-500">*</span>
+                    Due Date
                   </label>
                   <input
                     type="date"
-                    className={`${inputCls} ${errors.due_date ? 'border-red-300' : 'border-slate-200'}`}
+                    className={`${inputCls} border-slate-200 bg-slate-50`}
                     value={form.due_date}
-                    onChange={(e) => set('due_date', e.target.value)}
+                    disabled
+                    title="Due date is automatically set by # Days turn-around"
                   />
-                  {errors.due_date && <p className={errCls}>{errors.due_date}</p>}
                 </div>
               </div>
 

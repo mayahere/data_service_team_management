@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -31,6 +32,7 @@ import { Issue, Project, Task, AppUser } from "../types/dashboard";
 import { classNames, getProjectColors } from "../utils/formatters";
 import { IssueModal } from "./modals/IssueModal";
 import { ConfirmDialog } from "./modals/ConfirmDialog";
+import { IssueSidePanel } from "./IssueSidePanel";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
 import api from "../api";
@@ -59,6 +61,9 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
     direction: "asc" | "desc";
   } | null>(null);
 
+  const { project_id, task_id, issue_id } = useParams();
+  const navigate = useNavigate();
+
   const [issueModalOpen, setIssueModalOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState<Issue | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Issue | null>(null);
@@ -81,7 +86,9 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
         projectFilter === "all" || issue.projectId === projectFilter;
       const matchesPriority =
         priorityFilter === "all" || issue.issuePriority === priorityFilter;
-      return matchesSearch && matchesStatus && matchesProject && matchesPriority;
+      const matchesRouteProject = project_id ? issue.projectId === project_id : true;
+      const matchesRouteTask = task_id ? issue.taskId === task_id : true;
+      return matchesSearch && matchesStatus && matchesProject && matchesPriority && matchesRouteProject && matchesRouteTask;
     });
 
     if (sortConfig) {
@@ -107,7 +114,13 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
       });
     }
     return filtered;
-  }, [issues, projects, searchTerm, statusFilter, projectFilter, priorityFilter, sortConfig]);
+  }, [issues, projects, searchTerm, statusFilter, projectFilter, priorityFilter, sortConfig, project_id, task_id]);
+
+  const selectedSideIssue = useMemo(() => {
+    if (!issue_id) return null;
+    // Search in the *entire* issues list, not just filtered ones, in case they navigated directly
+    return issues.find((i) => i.id === issue_id || i.issueCode === issue_id) || null;
+  }, [issue_id, issues]);
 
   const handleSort = (key: keyof Issue | "project") => {
     let direction: "asc" | "desc" = "asc";
@@ -430,7 +443,7 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
                   <div className="flex items-center">Title <ArrowUpDown className="w-3 h-3 ml-1" /></div>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => handleSort("project")}>
-                  <div className="flex items-center">Project <ArrowUpDown className="w-3 h-3 ml-1" /></div>
+                  <div className="flex items-center">Task <ArrowUpDown className="w-3 h-3 ml-1" /></div>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => handleSort("status")}>
                   <div className="flex items-center">Status <ArrowUpDown className="w-3 h-3 ml-1" /></div>
@@ -459,9 +472,19 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
                 return (
                   <tr
                     key={issue.id}
+                    onClick={() => {
+                      if (project_id && task_id) {
+                        navigate(`/projects/${project_id}/tasks/${task_id}/issues/${issue.id}`);
+                      } else if (project_id) {
+                        navigate(`/projects/${project_id}/issues/${issue.id}`);
+                      } else {
+                        navigate(`/issues/${issue.id}`);
+                      }
+                    }}
                     className={classNames(
-                      "hover:bg-slate-50 transition-colors group",
-                      isCritical && issue.status !== "Resolved" ? "bg-red-50/30" : ""
+                      "hover:bg-slate-50 transition-colors group cursor-pointer",
+                      isCritical && issue.status !== "Resolved" ? "bg-red-50/30" : "",
+                      selectedSideIssue?.id === issue.id ? "bg-blue-50/50" : ""
                     )}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -483,14 +506,12 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
                         className={classNames(
                           "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium",
                           (() => {
-                            const c = getProjectColors(
-                              projects.find((p) => p.id === issue.projectId)?.color || "slate"
-                            );
+                            const c = getProjectColors("slate");
                             return `${c.bg100} ${c.text700}`;
                           })()
                         )}
                       >
-                        {projects.find((p) => p.id === issue.projectId)?.shortName || issue.projectId}
+                        {issue.taskId}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -585,6 +606,22 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <IssueSidePanel
+        open={!!selectedSideIssue}
+        issue={selectedSideIssue}
+        onClose={() => {
+          if (project_id && task_id) {
+            navigate(`/projects/${project_id}/tasks/${task_id}/issues`);
+          } else if (project_id) {
+            navigate(`/projects/${project_id}/issues`);
+          } else {
+            navigate(`/issues`);
+          }
+        }}
+        onIssueUpdate={() => refresh()}
+        onError={(msg) => addToast(msg, "error")}
       />
     </div>
   );

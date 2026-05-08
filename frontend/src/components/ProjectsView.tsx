@@ -6,6 +6,7 @@ import { ConfirmDialog } from './modals/ConfirmDialog';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import { classNames } from '../utils/formatters';
+import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
 interface ProjectsViewProps {
@@ -31,6 +32,7 @@ const SLA_STATUS_ICONS: Record<string, typeof CheckCircle2> = {
 export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
   const { user } = useAuth();
   const { addToast } = useToast();
+  const navigate = useNavigate();
   const isManager = user?.role === 'Manager';
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -100,7 +102,7 @@ export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
           </p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <p className="text-sm font-medium text-slate-500 mb-1">SLA At Risk / Breached</p>
+          <p className="text-sm font-medium text-slate-500 mb-1"># Days turn-around At Risk / Breached</p>
           <p className="text-3xl font-bold text-amber-600">
             {projects.filter((p) => p.slaStatus.status === 'At Risk' || p.slaStatus.status === 'Breached').length}
           </p>
@@ -126,7 +128,7 @@ export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
                   Issues
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  SLA
+                  # Days turn-around
                 </th>
                 {isManager && (
                   <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -141,7 +143,11 @@ export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
                 const SlaIcon = SLA_STATUS_ICONS[slaStatus] ?? AlertTriangle;
                 const slaColors = SLA_STATUS_COLORS[slaStatus] ?? SLA_STATUS_COLORS['No Data'];
                 return (
-                  <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                  <tr 
+                    key={p.id} 
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/projects/${p.id}/tasks`)}
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -195,21 +201,21 @@ export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
                           <SlaIcon className="w-3 h-3" />
                           {p.slaStatus.slaActual != null ? `${p.slaStatus.slaActual}%` : slaStatus}
                         </span>
-                        <span className="text-xs text-slate-400">target {p.slaStatus.slaTarget}%</span>
+                        <span className="text-xs text-slate-400">target {p.slaStatus.slaTarget}% (3-day turnaround)</span>
                       </div>
                     </td>
                     {isManager && (
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
-                            onClick={() => openEdit(p)}
+                            onClick={(e) => { e.stopPropagation(); openEdit(p); }}
                             className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit project"
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setDeleteTarget(p)}
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }}
                             className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete project"
                           >

@@ -76,7 +76,7 @@ export function ProjectModal({ open, project, users, onClose, onSaved, onError }
       if (form.start_date && form.end_date && form.start_date >= form.end_date)
         e.end_date = 'End date must be after start date';
     }
-    if (form.sla_target < 0 || form.sla_target > 100) e.sla_target = 'SLA target must be 0–100';
+    if (form.sla_target < 0 || form.sla_target > 100) e.sla_target = '# Days turn-around target must be 0–100';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -244,7 +244,7 @@ export function ProjectModal({ open, project, users, onClose, onSaved, onError }
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    SLA Target (%)
+                    # Days turn-around Target (%)
                   </label>
                   <input
                     type="number"

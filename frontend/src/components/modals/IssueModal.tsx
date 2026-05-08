@@ -91,6 +91,7 @@ export function IssueModal({
     const e: Partial<Record<keyof IssueFormData, string>> = {};
     if (!form.issue_title.trim()) e.issue_title = 'Title is required';
     if (!form.project_id) e.project_id = 'Project is required';
+    if (!form.task_id) e.task_id = 'Task is required';
     if (!form.issue_priority) e.issue_priority = 'Priority is required';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -248,20 +249,23 @@ export function IssueModal({
                   {errors.project_id && <p className={errCls}>{errors.project_id}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">Related Task</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Related Task <span className="text-red-500">*</span>
+                  </label>
                   <select
-                    className={`${inputCls} border-slate-200`}
+                    className={`${inputCls} ${errors.task_id ? 'border-red-300' : 'border-slate-200'}`}
                     value={form.task_id}
                     onChange={(e) => set('task_id', e.target.value)}
                     disabled={!form.project_id}
                   >
-                    <option value="">No task</option>
+                    <option value="">Select task…</option>
                     {projectTasks.map((t) => (
                       <option key={t.id} value={t.id}>
                         {t.title}
                       </option>
                     ))}
                   </select>
+                  {errors.task_id && <p className={errCls}>{errors.task_id}</p>}
                 </div>
               </div>
 
@@ -285,9 +289,11 @@ export function IssueModal({
                   <label className="block text-xs font-medium text-slate-700 mb-1">Due Date</label>
                   <input
                     type="date"
-                    className={`${inputCls} border-slate-200`}
+                    className={`${inputCls} ${form.task_id ? 'bg-slate-50 border-slate-200' : 'border-slate-200'}`}
                     value={form.due_date}
                     onChange={(e) => set('due_date', e.target.value)}
+                    disabled={!!form.task_id}
+                    title={form.task_id ? "Due date follows the related task" : ""}
                   />
                 </div>
               </div>
