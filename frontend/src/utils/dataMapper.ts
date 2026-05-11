@@ -8,6 +8,7 @@ import {
   Alert,
   ProjectHealth,
   AppUser,
+  ActivityEntry,
   TrendDirection,
 } from '../types/dashboard';
 
@@ -27,6 +28,22 @@ const PROJECT_COLORS: Record<string, string> = {
   'Banking-EMEA': 'violet',
   'DV-2025': 'emerald',
 };
+
+// ── Activity mapping ───────────────────────────────────────────────────────────
+
+export function mapActivityEntry(r: Record<string, unknown>): ActivityEntry {
+  return {
+    logId: String(r.log_id),
+    entityType: String(r.entity_type) as 'task' | 'issue',
+    entityId: String(r.entity_id),
+    entityTitle: String(r.entity_title),
+    action: String(r.action),
+    detail: r.detail != null ? String(r.detail) : null,
+    actorName: String(r.actor_name),
+    projectName: String(r.project_name),
+    timestamp: String(r.timestamp),
+  };
+}
 
 // ── User mapping ───────────────────────────────────────────────────────────────
 
@@ -51,6 +68,9 @@ export function mapProject(p: Record<string, unknown>): Project {
     name: String(p.project_name),
     shortName: code,
     color: PROJECT_COLORS[code] ?? 'slate',
+    status: String(p.status ?? 'Active'),
+    startDate: String(p.start_date ?? ''),
+    endDate: String(p.end_date ?? ''),
     leaderId: String(p.leader_id ?? ''),
     leaderName: p.leader_name ? String(p.leader_name) : null,
     taskCount: Number(p.task_count ?? 0),
@@ -229,6 +249,7 @@ export function generateAlerts(tasks: Task[], issues: Issue[]): Alert[] {
         type: 'issue',
         message: i.issueTitle,
         timestamp: i.createdAt,
+        issueId: i.id,
         acknowledged: false,
       });
     });

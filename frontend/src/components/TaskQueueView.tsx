@@ -2,31 +2,14 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Filter,
-  Search,
   AlertCircle,
-  Clock,
   ArrowUpDown,
-  Calendar,
-  Activity,
   Plus,
   Pencil,
   Trash2,
   ArrowRightCircle,
   CheckSquare,
 } from "lucide-react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
 import { Task, Project, AppUser } from "../types/dashboard";
 import { classNames, getProjectColors } from "../utils/formatters";
 import { TaskModal } from "./modals/TaskModal";
@@ -156,39 +139,6 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
     }
   }
 
-  // Summary metrics
-  const totalTasks = filteredTasks.length;
-  const inProgressTasks = filteredTasks.filter((t) => t.status === "In Progress").length;
-  const criticalTasks = filteredTasks.filter((t) => t.taskPriority === "Critical").length;
-  const overdueTasks = filteredTasks.filter((t) => {
-    if (!t.dueDate) return false;
-    return new Date(t.dueDate).getTime() < Date.now();
-  }).length;
-
-  // Chart data
-  const statusChartData = [
-    { name: "Not Started", value: filteredTasks.filter((t) => t.status === "Not Started").length, color: "#94a3b8" },
-    { name: "In Progress", value: filteredTasks.filter((t) => t.status === "In Progress").length, color: "#3b82f6" },
-    { name: "Completed", value: filteredTasks.filter((t) => t.status === "Completed").length, color: "#8b5cf6" },
-    { name: "Approved", value: filteredTasks.filter((t) => t.status === "Approved").length, color: "#10b981" },
-    { name: "Rejected", value: filteredTasks.filter((t) => t.status === "Rejected").length, color: "#ef4444" },
-  ];
-
-  const colorToHex: Record<string, string> = {
-    blue: "#3b82f6",
-    violet: "#8b5cf6",
-    emerald: "#10b981",
-    slate: "#64748b",
-  };
-
-  const projectChartData = projects
-    .map((p) => ({
-      name: p.shortName,
-      tasks: filteredTasks.filter((t) => t.projectId === p.id).length,
-      colorHex: colorToHex[p.color] || "#64748b",
-    }))
-    .filter((p) => p.tasks > 0);
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved": return "bg-emerald-100 text-emerald-700";
@@ -237,148 +187,22 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Total Tasks</h3>
-            <div className="p-2 bg-slate-50 rounded-lg">
-              <Activity className="w-4 h-4 text-slate-600" />
-            </div>
-          </div>
-          <span className="text-3xl font-bold text-slate-900">{totalTasks}</span>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">In Progress</h3>
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Clock className="w-4 h-4 text-blue-600" />
-            </div>
-          </div>
-          <span className="text-3xl font-bold text-blue-600">{inProgressTasks}</span>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Critical Priority</h3>
-            <div className="p-2 bg-red-50 rounded-lg">
-              <AlertCircle className="w-4 h-4 text-red-600" />
-            </div>
-          </div>
-          <span className="text-3xl font-bold text-red-600">{criticalTasks}</span>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Overdue</h3>
-            <div className="p-2 bg-amber-50 rounded-lg">
-              <Calendar className="w-4 h-4 text-amber-600" />
-            </div>
-          </div>
-          <span className="text-3xl font-bold text-amber-600">{overdueTasks}</span>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Tasks by Status</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {statusChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Tasks per Project</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={projectChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                <Tooltip cursor={{ fill: "#f1f5f9" }} contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                <Bar dataKey="tasks" radius={[4, 4, 0, 0]}>
-                  {projectChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.colorHex} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm overflow-hidden flex flex-col">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Upcoming Due Dates</h2>
-          <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-            {filteredTasks
-              .filter((t) => t.dueDate && new Date(t.dueDate).getTime() > Date.now())
-              .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
-              .slice(0, 5)
-              .map((task) => (
-                <div key={`timeline-${task.id}`} className="relative pl-4 border-l-2 border-slate-200">
-                  <div
-                    className={classNames(
-                      "absolute -left-[5px] top-1.5 w-2 h-2 rounded-full",
-                      task.taskPriority === "Critical" || task.taskPriority === "High"
-                        ? "bg-red-500"
-                        : task.taskPriority === "Medium"
-                        ? "bg-amber-500"
-                        : "bg-emerald-500"
-                    )}
-                  />
-                  <div className="flex justify-between items-start mb-1">
-                    <p className="text-sm font-medium text-slate-900 truncate pr-2">{task.title}</p>
-                    <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">
-                      {new Date(task.dueDate!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className={classNames(
-                        "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium",
-                        (() => {
-                          const c = getProjectColors(projects.find((p) => p.id === task.projectId)?.color || "slate");
-                          return `${c.bg100} ${c.text700}`;
-                        })()
-                      )}
-                    >
-                      {projects.find((p) => p.id === task.projectId)?.shortName || task.projectId}
-                    </span>
-                    <span className="text-xs text-slate-400">{task.assigneeName || "Unassigned"}</span>
-                  </div>
-                </div>
-              ))}
-            {filteredTasks.filter((t) => t.dueDate && new Date(t.dueDate).getTime() > Date.now()).length === 0 && (
-              <div className="text-center py-8 text-sm text-slate-500">No upcoming tasks.</div>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Filters */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+      <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-4 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center flex-1">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
+              className="pl-4 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64"
             />
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex gap-2">
+          <div className="flex items-center space-x-2">
             <Filter className="w-4 h-4 text-slate-400" />
             <select
               value={projectFilter}
@@ -391,7 +215,6 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
               ))}
             </select>
           </div>
-
           <div className="flex items-center space-x-2">
             <select
               value={assigneeFilter}
@@ -404,7 +227,6 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
               ))} 
             </select>
           </div>
-
           <div className="flex items-center space-x-2">
             <select
               value={reviewerFilter}
@@ -417,7 +239,6 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
               ))} 
             </select>
           </div>
-
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -430,7 +251,6 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
           </select>
-
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
@@ -442,6 +262,8 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
           </select>
+        </div>
+
       </div>
       {/* Main Table */}
       <div className="text-sm text-slate-500 font-medium">Showing {filteredTasks.length} tasks</div>

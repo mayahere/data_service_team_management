@@ -6,6 +6,7 @@ from sqlalchemy import func
 from database import get_session
 from models import Task, TaskCreate, TaskUpdate, TaskStatusUpdate, TaskReviewUpdate, User, Project, Issue
 from auth import get_current_user, require_manager_or_leader
+from routers.activity import log_activity
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -107,6 +108,9 @@ def create_task(body: TaskCreate, user: dict = Depends(require_manager_or_leader
         **body_dict,
     )
     session.add(task)
+    project = session.get(Project, body.project_id)
+    log_activity(session, "task", new_id, body.title, "created", user["full_name"],
+                 project.project_name if project else "")
     session.commit()
     session.refresh(task)
     return _enrich(session, task)
@@ -130,7 +134,10 @@ def update_task(task_id: str, body: TaskUpdate, user: dict = Depends(get_current
     for key, value in data.items():
         setattr(t, key, value)
     t.updated_at = datetime.datetime.utcnow().isoformat()
-    
+
+    project = session.get(Project, t.project_id)
+    log_activity(session, "task", task_id, t.title, "updated", user["full_name"],
+                 project.project_name if project else "")
     session.add(t)
     session.commit()
     session.refresh(t)
@@ -163,11 +170,15 @@ def update_task_status(task_id: str, body: TaskStatusUpdate, user: dict = Depend
     if user["role"] == "Operator" and new_status in ("Approved", "Rejected"):
         raise HTTPException(status_code=403, detail="Only Leaders or Managers can approve or reject tasks")
 
+    old_status = t.status
     t.status = new_status
     t.updated_at = datetime.datetime.utcnow().isoformat()
     if new_status == "Completed":
         t.completed_at = t.updated_at
-        
+
+    project = session.get(Project, t.project_id)
+    log_activity(session, "task", task_id, t.title, "status_changed", user["full_name"],
+                 project.project_name if project else "", detail=f"{old_status} → {new_status}")
     session.add(t)
     session.commit()
     session.refresh(t)
@@ -198,7 +209,11 @@ def review_task(task_id: str, body: TaskReviewUpdate, user: dict = Depends(get_c
     new_status = "Approved" if body.action == "approve" else "Rejected"
     t.status = new_status
     t.updated_at = datetime.datetime.utcnow().isoformat()
-    
+
+    project = session.get(Project, t.project_id)
+    action = "approved" if body.action == "approve" else "rejected"
+    log_activity(session, "task", task_id, t.title, action, user["full_name"],
+                 project.project_name if project else "", detail=body.feedback)
     session.add(t)
     session.commit()
     session.refresh(t)
@@ -213,9 +228,11 @@ def delete_task(task_id: str, user: dict = Depends(require_manager_or_leader), s
     if t.status != "Not Started":
         raise HTTPException(status_code=409, detail="Only 'Not Started' tasks can be deleted")
         
+    project = session.get(Project, t.project_id)
+    log_activity(session, "task", task_id, t.title, "deleted", user["full_name"],
+                 project.project_name if project else "")
     issues = session.exec(select(Issue).where(Issue.task_id == task_id)).all()
     for issue in issues:
         session.delete(issue)
-        
     session.delete(t)
     session.commit()

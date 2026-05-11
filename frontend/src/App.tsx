@@ -28,6 +28,7 @@ function AppContent() {
     kpis,
     sla,
     projectHealth,
+    activities,
     loading,
     refresh,
   } = useAppData(user?.userId);
@@ -46,6 +47,12 @@ function AppContent() {
       const diff = new Date(t.dueDate).getTime() - Date.now();
       return diff > 0 && diff < 2 * 24 * 3_600_000;
     }).length,
+    criticalTasks: tasks.filter(
+      (t) => t.taskPriority === 'Critical' && t.status !== 'Approved' && t.status !== 'Rejected',
+    ).length,
+    criticalIssues: issues.filter(
+      (i) => i.issuePriority === 'Critical' && i.status !== 'Resolved',
+    ).length,
   };
 
   if (loading && !project && projects.length === 0) {
@@ -79,7 +86,7 @@ function AppContent() {
             <Routes location={location}>
               <Route path="/" element={<Navigate to="/overview" replace />} />
               <Route path="/overview" element={
-                <DashboardView role={activeRole} project={project} projects={projects} tasks={tasks} alerts={alerts} kpis={kpis} sla={sla} projectHealth={projectHealth} />
+                <DashboardView role={activeRole} project={project} projects={projects} tasks={tasks} issues={issues} alerts={alerts} kpis={kpis} sla={sla} projectHealth={projectHealth} activities={activities} />
               } />
               <Route path="/projects" element={<ProjectsView projects={projects} users={users} refresh={refresh} />} />
               <Route path="/projects/:project_id/tasks" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />
@@ -90,8 +97,8 @@ function AppContent() {
               <Route path="/tasks/:task_id" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />
               <Route path="/issues" element={<IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />} />
               <Route path="/issues/:issue_id" element={<IssueTrackingView issues={issues} projects={projects} tasks={tasks} users={users} refresh={refresh} />} />
-              <Route path="/monitor" element={<PerformanceView operators={operators} kpis={kpis} projects={projects} />} />
-              <Route path="/report" element={<ReportsView kpis={kpis} sla={sla} project={project} />} />
+              <Route path="/monitor" element={<PerformanceView operators={operators} projects={projects} users={users} refresh={refresh} />} />
+              <Route path="/report" element={<ReportsView projects={projects} tasks={tasks} issues={issues} />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

@@ -2,32 +2,13 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
-  CheckCircle2,
   Filter,
   Search,
-  Clock,
   ArrowUpDown,
-  Activity,
-  PieChart as PieChartIcon,
   Plus,
   Pencil,
   Trash2,
 } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  BarChart,
-  Bar,
-} from "recharts";
 import { Issue, Project, Task, AppUser } from "../types/dashboard";
 import { classNames, getProjectColors } from "../utils/formatters";
 import { IssueModal } from "./modals/IssueModal";
@@ -152,69 +133,7 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
     if (isManager || isLeader) return true;
     return issue.assigneeId === user?.userId || issue.reviewerId === user?.userId;
   }
-
-  // Summary metrics
-  const totalIssues = filteredIssues.length;
-  const issuesByPriority = {
-    Critical: filteredIssues.filter((i) => i.issuePriority === "Critical").length,
-    High: filteredIssues.filter((i) => i.issuePriority === "High").length,
-    Medium: filteredIssues.filter((i) => i.issuePriority === "Medium").length,
-    Low: filteredIssues.filter((i) => i.issuePriority === "Low").length,
-  };
-  const resolvedIssues = filteredIssues.filter((i) => i.status === "Resolved").length;
-  const resolutionRate = totalIssues > 0 ? Math.round((resolvedIssues / totalIssues) * 100) : 0;
-  const overdueIssues = filteredIssues.filter((i) => {
-    if (!i.dueDate || i.status === "Resolved") return false;
-    return new Date(i.dueDate).getTime() < Date.now();
-  }).length;
-
-  // Chart data
-  const priorityChartData = [
-    { name: "Critical", value: issuesByPriority.Critical, color: "#dc2626" },
-    { name: "High", value: issuesByPriority.High, color: "#ef4444" },
-    { name: "Medium", value: issuesByPriority.Medium, color: "#f59e0b" },
-    { name: "Low", value: issuesByPriority.Low, color: "#10b981" },
-  ];
-
-  const colorToHex: Record<string, string> = {
-    blue: "#3b82f6",
-    violet: "#8b5cf6",
-    emerald: "#10b981",
-    slate: "#64748b",
-  };
-
-  const projectChartData = projects
-    .map((p) => ({
-      name: p.shortName,
-      issues: filteredIssues.filter((i) => i.projectId === p.id).length,
-      colorHex: colorToHex[p.color] || "#64748b",
-    }))
-    .filter((p) => p.issues > 0);
-
-  const trendData = useMemo(() => {
-    const dates = filteredIssues.map((i) =>
-      new Date(i.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    );
-    const uniqueDates = Array.from(new Set(dates)).sort(
-      (a, b) => new Date(a).getTime() - new Date(b).getTime()
-    );
-    return uniqueDates.map((date) => {
-      const onDate = filteredIssues.filter(
-        (i) =>
-          new Date(i.createdAt).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          }) === date
-      );
-      return {
-        date,
-        total: onDate.length,
-        critical: onDate.filter((i) => i.issuePriority === "Critical").length,
-        high: onDate.filter((i) => i.issuePriority === "High").length,
-      };
-    });
-  }, [filteredIssues]);
-
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Resolved": return "bg-emerald-100 text-emerald-700";
@@ -253,124 +172,6 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
           <Plus className="w-4 h-4" />
           New Issue
         </button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Total Issues</h3>
-            <div className="p-2 bg-slate-50 rounded-lg">
-              <Activity className="w-4 h-4 text-slate-600" />
-            </div>
-          </div>
-          <span className="text-3xl font-bold text-slate-900">{totalIssues}</span>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Issues by Priority</h3>
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <PieChartIcon className="w-4 h-4 text-indigo-600" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <div className="text-center">
-              <span className="block text-lg font-bold text-red-700">{issuesByPriority.Critical}</span>
-              <span className="text-[10px] uppercase tracking-wider text-slate-500">Crit</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-lg font-bold text-red-500">{issuesByPriority.High}</span>
-              <span className="text-[10px] uppercase tracking-wider text-slate-500">High</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-lg font-bold text-amber-600">{issuesByPriority.Medium}</span>
-              <span className="text-[10px] uppercase tracking-wider text-slate-500">Med</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-lg font-bold text-emerald-600">{issuesByPriority.Low}</span>
-              <span className="text-[10px] uppercase tracking-wider text-slate-500">Low</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Resolution Rate</h3>
-            <div className="p-2 bg-emerald-50 rounded-lg">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            </div>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <span className="text-3xl font-bold text-emerald-600">{resolutionRate}%</span>
-            <span className="text-sm font-medium text-slate-500">{resolvedIssues} resolved</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-slate-500">Overdue Issues</h3>
-            <div className="p-2 bg-red-50 rounded-lg">
-              <Clock className="w-4 h-4 text-red-600" />
-            </div>
-          </div>
-          <span className="text-3xl font-bold text-red-600">{overdueIssues}</span>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Issues by Project</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={projectChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                <Tooltip cursor={{ fill: "#f1f5f9" }} contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                <Bar dataKey="issues" radius={[4, 4, 0, 0]}>
-                  {projectChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.colorHex} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Priority Distribution</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={priorityChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                  {priorityChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-900 mb-4">Issues Over Time</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#64748b" }} />
-                <Tooltip contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                <Line type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6", strokeWidth: 0 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="critical" stroke="#dc2626" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
       </div>
 
       {/* Filters */}
@@ -552,7 +353,7 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
                       <div className="flex items-center justify-end gap-1">
                         {canEditIssue(issue) && (
                           <button
-                            onClick={() => { setEditingIssue(issue); setIssueModalOpen(true); }}
+                            onClick={(e) => { e.stopPropagation(); setEditingIssue(issue); setIssueModalOpen(true); }}
                             title="Edit issue"
                             className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           >
@@ -561,7 +362,7 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
                         )}
                         {canDeleteIssue && (
                           <button
-                            onClick={() => setDeleteTarget(issue)}
+                            onClick={(e) => { e.stopPropagation(); setDeleteTarget(issue); }}
                             title="Delete issue"
                             className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           >

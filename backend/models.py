@@ -21,7 +21,7 @@ class Project(SQLModel, table=True):
     end_date: str
     leader_id: str = Field(index=True)
     status: str  # Active | Completed | On Hold
-    sla_target: float = 85.0
+    sla_target: float = 7.0  # days to approve from created_at
 
 
 class Task(SQLModel, table=True):
@@ -60,6 +60,18 @@ class Issue(SQLModel, table=True):
     created_at: str
 
 
+class AuditLog(SQLModel, table=True):
+    log_id: str = Field(primary_key=True)
+    entity_type: str            # "task" | "issue"
+    entity_id: str
+    entity_title: str
+    action: str                 # "created" | "updated" | "status_changed" | "approved" | "rejected" | "resolved" | "deleted"
+    detail: Optional[str] = None
+    actor_name: str
+    project_name: str
+    timestamp: str
+
+
 class Attachment(SQLModel, table=True):
     attachment_id: str = Field(primary_key=True)
     issue_id: str = Field(index=True)
@@ -83,7 +95,7 @@ class ProjectCreate(BaseModel):
     end_date: str
     leader_id: str
     status: str = "Active"
-    sla_target: float = 85.0
+    sla_target: float = 7.0  # days
 
 
 class ProjectUpdate(BaseModel):

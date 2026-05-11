@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Share2, Pencil } from 'lucide-react';
+import { X, Share2, Pencil, Plus } from 'lucide-react';
+import { IssueModal } from './modals/IssueModal';
 import { Task, Project, AppUser, Issue } from '../types/dashboard';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
@@ -37,6 +38,7 @@ export function TaskSidePanel({
   const [taskNote, setTaskNote] = useState<string>('');
   const [isEditingNote, setIsEditingNote] = useState(false);
 
+  const [issueModalOpen, setIssueModalOpen] = useState(false);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
@@ -257,6 +259,7 @@ export function TaskSidePanel({
                 <div className="flex justify-between w-full">
                   <div className="flex items-center gap-3 text-sm font-medium">
                     <span className="text-slate-700 px-2 py-1 bg-slate-100 rounded-md">{projectCode}</span>
+                    <span className="text-slate-700 px-2 py-1 bg-slate-100 rounded-md">{task.type}</span>
                     <span className="text-slate-400">{displayDate}</span>
                   </div>
                   <select
@@ -368,8 +371,12 @@ export function TaskSidePanel({
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-base font-semibold text-slate-900">Issue Lists</h3>
-                  <button className="text-slate-400 hover:text-slate-600 p-1 rounded transition-colors">
-                    <Pencil className="w-4 h-4" />
+                  <button
+                    onClick={() => setIssueModalOpen(true)}
+                    className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition-colors"
+                    title="Add issue"
+                  >
+                    <Plus className="w-4 h-4" />
                   </button>
                 </div>
                 
@@ -386,7 +393,7 @@ export function TaskSidePanel({
                     {issues.map(issue => (
                       <div 
                         key={issue.id} 
-                        onClick={() => navigate(`/projects/${task.projectId}/tasks/${task.id}/issues/${issue.id}`)}
+                        onClick={() => { onClose(); navigate(`/issues/${issue.id}`); }}
                         className="flex flex-col items-start justify-between p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow cursor-pointer"
                       >
                         <div className="flex items-center gap-2">
@@ -410,6 +417,23 @@ export function TaskSidePanel({
               </div>
             </div>
           </motion.div>
+
+          <IssueModal
+            open={issueModalOpen}
+            issue={null}
+            projects={projects}
+            tasks={[task]}
+            users={users}
+            defaultProjectId={task.projectId}
+            defaultTaskId={task.id}
+            onClose={() => setIssueModalOpen(false)}
+            onSaved={() => {
+              setIssueModalOpen(false);
+              fetchIssues(task.id);
+              onTaskUpdate();
+            }}
+            onError={onError}
+          />
         </>
       )}
     </AnimatePresence>

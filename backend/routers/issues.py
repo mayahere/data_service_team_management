@@ -8,6 +8,7 @@ from sqlalchemy import func
 from database import get_session
 from models import Issue, IssueCreate, IssueUpdate, User, Task, Project
 from auth import get_current_user, require_manager_or_leader
+from routers.activity import log_activity
 
 router = APIRouter(prefix="/issues", tags=["issues"])
 
@@ -111,6 +112,9 @@ def create_issue(body: IssueCreate, user: dict = Depends(get_current_user), sess
         due_date=due_date,
         **body_dict,
     )
+    project = session.get(Project, body.project_id)
+    log_activity(session, "issue", new_id, body.issue_title, "created", user["full_name"],
+                 project.project_name if project else "")
     session.add(issue)
     session.commit()
     session.refresh(issue)
@@ -132,12 +136,23 @@ def update_issue(issue_id: str, body: IssueUpdate, user: dict = Depends(get_curr
             raise HTTPException(status_code=403, detail="Access denied")
 
     updates = body.model_dump(exclude_none=True)
+    old_status = i.status
     if updates.get("status") == "Resolved" and not updates.get("resolved_at"):
         updates["resolved_at"] = datetime.datetime.utcnow().isoformat()
-        
+
     for key, value in updates.items():
         setattr(i, key, value)
-        
+
+    new_status = i.status
+    project = session.get(Project, i.project_id)
+    pname = project.project_name if project else ""
+    if new_status != old_status:
+        action = "resolved" if new_status == "Resolved" else "status_changed"
+        log_activity(session, "issue", issue_id, i.issue_title, action, user["full_name"],
+                     pname, detail=f"{old_status} → {new_status}")
+    else:
+        log_activity(session, "issue", issue_id, i.issue_title, "updated", user["full_name"], pname)
+
     session.add(i)
     session.commit()
     session.refresh(i)
@@ -183,5 +198,8 @@ def delete_issue(issue_id: str, user: dict = Depends(require_manager_or_leader),
         if i.project_id not in leader_projects:
             raise HTTPException(status_code=403, detail="Access denied")
 
+    project = session.get(Project, i.project_id)
+    log_activity(session, "issue", issue_id, i.issue_title, "deleted", user["full_name"],
+                 project.project_name if project else "")
     session.delete(i)
     session.commit()

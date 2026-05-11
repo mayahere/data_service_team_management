@@ -32,7 +32,7 @@ const EMPTY: ProjectFormData = {
   end_date: '',
   leader_id: '',
   status: 'Active',
-  sla_target: 85,
+  sla_target: 7,
 };
 
 export function ProjectModal({ open, project, users, onClose, onSaved, onError }: ProjectModalProps) {
@@ -76,7 +76,7 @@ export function ProjectModal({ open, project, users, onClose, onSaved, onError }
       if (form.start_date && form.end_date && form.start_date >= form.end_date)
         e.end_date = 'End date must be after start date';
     }
-    if (form.sla_target < 0 || form.sla_target > 100) e.sla_target = '# Days turn-around target must be 0–100';
+    if (form.sla_target < 1) e.sla_target = 'Turn-around target must be at least 1 day';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -244,12 +244,11 @@ export function ProjectModal({ open, project, users, onClose, onSaved, onError }
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
-                    # Days turn-around Target (%)
+                    SLA Target (days to approve)
                   </label>
                   <input
                     type="number"
-                    min={0}
-                    max={100}
+                    min={1}
                     className={`${inputCls} ${errors.sla_target ? 'border-red-300' : 'border-slate-200'}`}
                     value={form.sla_target}
                     onChange={(e) => set('sla_target', Number(e.target.value))}

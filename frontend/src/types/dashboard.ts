@@ -13,14 +13,17 @@ export interface Project {
   name: string;
   shortName: string;
   color: string;
+  status: string;
+  startDate: string;
+  endDate: string;
   leaderId: string;
   leaderName: string | null;
   taskCount: number;
   issueCount: number;
   slaStatus: {
     status: string;
-    slaActual: number | null;
-    slaTarget: number;
+    slaActual: number | null;  // breach % of approved tasks that exceeded sla_target days
+    slaTarget: number;         // turn-around target in days
   };
 }
 
@@ -102,6 +105,7 @@ export interface Alert {
   message: string;
   timestamp: string;
   taskId?: string;
+  issueId?: string;
   acknowledged: boolean;
 }
 
@@ -120,4 +124,16 @@ export interface AppUser {
   email: string;
   role: string;
   isActive: boolean;
+}
+
+export interface ActivityEntry {
+  logId: string;
+  entityType: 'task' | 'issue';
+  entityId: string;
+  entityTitle: string;
+  action: string;
+  detail: string | null;
+  actorName: string;
+  projectName: string;
+  timestamp: string;
 }

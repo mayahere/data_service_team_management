@@ -1,6 +1,8 @@
-fastapi
-uvicorn[standard]
-pyjwt
-python-multipart
-sqlmodel
-psycopg2-binary
+fastapi==0.111.0
+pydantic==2.10.3
+uvicorn[standard]==0.32.0
+pyjwt==2.10.1
+python-multipart==0.0.22
+sqlmodel==0.0.14
+psycopg2-binary==2.9.12
+sqlalchemy==2.0.36
