@@ -17,16 +17,16 @@ interface IssueFormData {
 }
 
 interface IssueModalProps {
-  open: boolean;
+  defaultProjectId?: string;
+  defaultTaskId?: string;
   issue: Issue | null;
+  onClose: () => void;
+  onError: (msg: string) => void;
+  onSaved: () => void;
+  open: boolean;
   projects: Project[];
   tasks: Task[];
   users: AppUser[];
-  defaultProjectId?: string;
-  defaultTaskId?: string;
-  onClose: () => void;
-  onSaved: () => void;
-  onError: (msg: string) => void;
 }
 
 const EMPTY: IssueFormData = {
@@ -57,7 +57,7 @@ export function IssueModal({
   const [errors, setErrors] = useState<Partial<Record<keyof IssueFormData, string>>>({});
   const [loading, setLoading] = useState(false);
 
-  const projectTasks = tasks.filter((t) => t.projectId === form.project_id);
+  const availableTasks = issue ? tasks.filter((t) => t.projectId === issue.projectId) : tasks;
 
   useEffect(() => {
     if (open) {
@@ -225,48 +225,34 @@ export function IssueModal({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Project <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    className={`${inputCls} ${errors.project_id ? 'border-red-300' : 'border-slate-200'}`}
-                    value={form.project_id}
-                    onChange={(e) => {
-                      set('project_id', e.target.value);
-                      set('task_id', '');
-                    }}
-                    disabled={!!issue}
-                  >
-                    <option value="">Select project…</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.project_id && <p className={errCls}>{errors.project_id}</p>}
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Related Task <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    className={`${inputCls} ${errors.task_id ? 'border-red-300' : 'border-slate-200'}`}
-                    value={form.task_id}
-                    onChange={(e) => set('task_id', e.target.value)}
-                    disabled={!form.project_id}
-                  >
-                    <option value="">Select task…</option>
-                    {projectTasks.map((t) => (
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Related Task <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className={`${inputCls} ${errors.task_id ? 'border-red-300' : 'border-slate-200'}`}
+                  value={form.task_id}
+                  onChange={(e) => {
+                    const taskId = e.target.value;
+                    const task = tasks.find((t) => t.id === taskId);
+                    setForm((f) => ({
+                      ...f,
+                      task_id: taskId,
+                      project_id: task ? task.projectId : f.project_id,
+                    }));
+                  }}
+                >
+                  <option value="">Select task…</option>
+                  {availableTasks.map((t) => {
+                    const project = projects.find((p) => p.id === t.projectId);
+                    return (
                       <option key={t.id} value={t.id}>
-                        {t.title}
+                        {t.title} {project && !issue ? `(${project.name})` : ''}
                       </option>
-                    ))}
-                  </select>
-                  {errors.task_id && <p className={errCls}>{errors.task_id}</p>}
-                </div>
+                    );
+                  })}
+                </select>
+                {errors.task_id && <p className={errCls}>{errors.task_id}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">

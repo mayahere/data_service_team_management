@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Database, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { Database, Lock, Mail, AlertCircle, Loader2 } from "lucide-react";
 
 export function LoginView() {
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     try {
       await login(email, password);
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { detail?: string } } };
-      setError(axiosErr.response?.data?.detail ?? 'Invalid credentials');
+      setError(axiosErr.response?.data?.detail ?? "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -26,20 +26,22 @@ export function LoginView() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 mb-4 shadow-lg shadow-blue-900/40">
             <Database className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">DataOps Hub</h1>
-          <p className="text-slate-500 mt-1 text-sm">Sign in to your workspace</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Data Services
+          </h1>
+          <p className="text-slate-500 mt-1 text-sm">
+            Sign in to your workspace
+          </p>
         </div>
 
         {/* Card */}
         <div className="bg-slate-900 rounded-2xl border border-slate-800 p-7 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">
                 Email
@@ -94,7 +96,7 @@ export function LoginView() {
                   Signing in…
                 </>
               ) : (
-                'Sign in'
+                "Sign in"
               )}
             </button>
           </form>

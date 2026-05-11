@@ -9,20 +9,36 @@ from auth import get_current_user, require_manager
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 def compute_sla_status(session: Session, project: Project) -> dict:
-    total = session.exec(select(func.count(Task.task_id)).where(Task.project_id == project.project_id)).one()
-    if total == 0:
+    from datetime import datetime, timezone
+
+    approved_tasks = session.exec(
+        select(Task).where(Task.project_id == project.project_id, Task.status == "Approved")
+    ).all()
+
+    total_approved = len(approved_tasks)
+    if total_approved == 0:
         return {"status": "No Data", "sla_actual": None, "sla_target": project.sla_target}
-    approved = session.exec(select(func.count(Task.task_id)).where(Task.project_id == project.project_id, Task.status == "Approved")).one()
-    
-    actual = round(approved / total * 100, 1)
-    target = project.sla_target
-    if actual >= target:
+
+    sla_days = project.sla_target
+    breached = 0
+    for t in approved_tasks:
+        if t.completed_at and t.created_at:
+            try:
+                created = datetime.fromisoformat(t.created_at.replace("Z", "+00:00")).replace(tzinfo=None)
+                approved = datetime.fromisoformat(t.completed_at.replace("Z", "+00:00")).replace(tzinfo=None)
+                if (approved - created).days > sla_days:
+                    breached += 1
+            except Exception:
+                pass
+
+    breach_pct = round(breached / total_approved * 100, 1)
+    if breach_pct <= 20:
         status = "Met"
-    elif actual >= target - 10:
+    elif breach_pct <= 50:
         status = "At Risk"
     else:
         status = "Breached"
-    return {"status": status, "sla_actual": actual, "sla_target": target}
+    return {"status": status, "sla_actual": breach_pct, "sla_target": sla_days}
 
 def _enrich(session: Session, p: Project) -> dict:
     leader = session.get(User, p.leader_id)

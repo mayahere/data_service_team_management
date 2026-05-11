@@ -6,12 +6,12 @@ import {
   FileText,
   Grid,
   LogOut,
-  FolderKanban } from
-'lucide-react';
-import { Role } from '../types/dashboard';
-import { classNames } from '../utils/formatters';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+  FolderKanban,
+} from "lucide-react";
+import { Role } from "../types/dashboard";
+import { classNames } from "../utils/formatters";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface SidebarProps {
   activeRole: Role;
@@ -19,51 +19,54 @@ interface SidebarProps {
   alertCounts: {
     errors: number;
     tasksAtRisk: number;
+    criticalTasks: number;
+    criticalIssues: number;
   };
 }
 export function Sidebar({
   activeRole: _activeRole,
   onRoleChange: _onRoleChange,
-  alertCounts
+  alertCounts,
 }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const navItems = [
-  {
-    path: '/overview',
-    label: 'Overview',
-    icon: LayoutDashboard
-  },
-  {
-    path: '/projects',
-    label: 'Projects',
-    icon: FolderKanban
-  },
-  {
-    path: '/tasks',
-    label: 'Task Queue',
-    icon: ListChecks,
-    badge: alertCounts.tasksAtRisk > 0 ? alertCounts.tasksAtRisk : undefined,
-    badgeColor: 'bg-amber-500'
-  },
-  {
-    path: '/issues',
-    label: 'Issues',
-    icon: AlertTriangle,
-    badge: alertCounts.errors > 0 ? alertCounts.errors : undefined,
-    badgeColor: 'bg-red-500'
-  },
-  {
-    path: '/monitor',
-    label: 'Performance',
-    icon: BarChart3
-  },
-  {
-    path: '/report',
-    label: 'Reports',
-    icon: FileText
-  }];
+    {
+      path: "/overview",
+      label: "Overview",
+      icon: LayoutDashboard,
+    },
+    {
+      path: "/projects",
+      label: "Projects",
+      icon: FolderKanban,
+    },
+    {
+      path: "/tasks",
+      label: "Task Queue",
+      icon: ListChecks,
+      badge: alertCounts.criticalTasks > 0 ? alertCounts.criticalTasks : undefined,
+      badgeColor: "bg-red-500",
+    },
+    {
+      path: "/issues",
+      label: "Issues",
+      icon: AlertTriangle,
+      badge: alertCounts.criticalIssues > 0 ? alertCounts.criticalIssues : undefined,
+      badgeColor: "bg-red-500",
+    },
+    {
+      path: "/monitor",
+      label: "Performance",
+      icon: BarChart3,
+    },
+    {
+      path: "/report",
+      label: "Reports",
+      icon: FileText,
+    },
+  ];
 
   return (
     <div className="w-64 bg-slate-900 h-screen flex flex-col border-r border-slate-800 text-slate-300 flex-shrink-0">
@@ -71,7 +74,7 @@ export function Sidebar({
       <div className="h-16 flex items-center px-6 border-b border-slate-800">
         <Grid className="w-6 h-6 text-blue-400 mr-3" />
         <span className="text-white font-semibold text-lg tracking-tight">
-          DataOps Hub
+          Data Services
         </span>
       </div>
 
@@ -85,33 +88,34 @@ export function Sidebar({
               key={item.path}
               onClick={() => navigate(item.path)}
               className={classNames(
-                'w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-colors duration-150 text-sm font-medium',
-                isActive ?
-                'bg-slate-800 text-white border-l-2 border-blue-400 pl-2.5' :
-                'hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent'
-              )}>
-              
+                "w-full flex items-center justify-between px-3 py-2.5 rounded-md transition-colors duration-150 text-sm font-medium",
+                isActive
+                  ? "bg-slate-800 text-white border-l-2 border-blue-400 pl-2.5"
+                  : "hover:bg-slate-800/50 hover:text-white border-l-2 border-transparent",
+              )}
+            >
               <div className="flex items-center">
                 <Icon
                   className={classNames(
-                    'w-5 h-5 mr-3',
-                    isActive ? 'text-blue-400' : 'text-slate-400'
-                  )} />
-                
+                    "w-5 h-5 mr-3",
+                    isActive ? "text-blue-400" : "text-slate-400",
+                  )}
+                />
+
                 {item.label}
               </div>
-              {item.badge !== undefined &&
-              <span
-                className={classNames(
-                  'text-[10px] font-bold text-white px-2 py-0.5 rounded-full',
-                  item.badgeColor
-                )}>
-                
+              {item.badge !== undefined && (
+                <span
+                  className={classNames(
+                    "text-[10px] font-bold text-white px-2 py-0.5 rounded-full",
+                    item.badgeColor,
+                  )}
+                >
                   {item.badge}
                 </span>
-              }
-            </button>);
-
+              )}
+            </button>
+          );
         })}
       </nav>
 
@@ -120,10 +124,17 @@ export function Sidebar({
         {/* Logged-in user */}
         <div className="flex items-center gap-3 px-1">
           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-            {user?.fullName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}
+            {user?.fullName
+              .split(" ")
+              .map((w: string) => w[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)}
           </div>
           <div className="min-w-0">
-            <p className="text-white text-xs font-medium truncate">{user?.fullName}</p>
+            <p className="text-white text-xs font-medium truncate">
+              {user?.fullName}
+            </p>
             <p className="text-slate-500 text-[10px] truncate">{user?.role}</p>
           </div>
           <button
@@ -135,6 +146,6 @@ export function Sidebar({
           </button>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }

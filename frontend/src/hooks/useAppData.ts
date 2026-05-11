@@ -6,6 +6,7 @@ import {
   mapIssue,
   mapOperator,
   mapAppUser,
+  mapActivityEntry,
   computeSLAMetric,
   computeKPIs,
   generateAlerts,
@@ -21,6 +22,7 @@ import {
   Alert,
   ProjectHealth,
   AppUser,
+  ActivityEntry,
 } from '../types/dashboard';
 
 export interface AppData {
@@ -34,6 +36,7 @@ export interface AppData {
   kpis: KPI[];
   sla: SLAMetric;
   projectHealth: ProjectHealth[];
+  activities: ActivityEntry[];
   loading: boolean;
   fetchError: string | null;
   refresh: () => void;
@@ -57,6 +60,7 @@ export function useAppData(userId?: string): AppData {
   const [kpis, setKpis] = useState<KPI[]>([]);
   const [sla, setSla] = useState<SLAMetric>(EMPTY_SLA);
   const [projectHealth, setProjectHealth] = useState<ProjectHealth[]>([]);
+  const [activities, setActivities] = useState<ActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
@@ -74,11 +78,12 @@ export function useAppData(userId?: string): AppData {
       setLoading(true);
       setFetchError(null);
       try {
-        const [projectsRes, tasksRes, issuesRes, usersRes] = await Promise.all([
+        const [projectsRes, tasksRes, issuesRes, usersRes, activityRes] = await Promise.all([
           api.get('/projects'),
           api.get('/tasks'),
           api.get('/issues'),
-          api.get('/users'),
+          api.get('/users?include_inactive=true'),
+          api.get('/activity'),
         ]);
 
         if (cancelled) return;
@@ -87,6 +92,7 @@ export function useAppData(userId?: string): AppData {
         const rawTasks: Record<string, unknown>[] = tasksRes.data;
         const rawIssues: Record<string, unknown>[] = issuesRes.data;
         const rawUsers: Record<string, unknown>[] = usersRes.data;
+        const rawActivity: Record<string, unknown>[] = activityRes.data;
 
         const mappedProjects = rawProjects.map(mapProject);
         const mappedTasks = rawTasks.map(mapTask);
@@ -110,6 +116,7 @@ export function useAppData(userId?: string): AppData {
         setKpis(mappedKPIs);
         setAlerts(mappedAlerts);
         setProjectHealth(mappedHealth);
+        setActivities(rawActivity.map(mapActivityEntry));
       } catch (err: unknown) {
         if (!cancelled) {
           const msg = err instanceof Error ? err.message : 'Failed to load data';
@@ -137,6 +144,7 @@ export function useAppData(userId?: string): AppData {
     kpis,
     sla,
     projectHealth,
+    activities,
     loading,
     fetchError,
     refresh,

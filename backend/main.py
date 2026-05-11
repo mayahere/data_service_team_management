@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from sqlmodel import SQLModel
 from database import engine
 import seed
-from routers import auth_router, projects, tasks, issues, users, reports
+from routers import auth_router, projects, tasks, issues, users, reports, activity
 
 
 @asynccontextmanager
@@ -16,21 +16,21 @@ async def lifespan(app: FastAPI):
     try:
         from sqlmodel import Session, text
         with Session(engine) as session:
-            session.exec(text("ALTER TABLE task ADD COLUMN task_note VARCHAR;"))
+            session.exec(text("ALTER TABLE task ADD COLUMN IF NOT EXISTS task_note VARCHAR;"))
             session.commit()
     except Exception:
         pass
     try:
         from sqlmodel import Session, text
         with Session(engine) as session:
-            session.exec(text("ALTER TABLE issue ADD COLUMN issue_note VARCHAR;"))
+            session.exec(text("ALTER TABLE issue ADD COLUMN IF NOT EXISTS issue_note VARCHAR;"))
             session.commit()
     except Exception:
         pass
     try:
         from sqlmodel import Session, text
         with Session(engine) as session:
-            session.exec(text("ALTER TABLE issue ADD COLUMN issue_url VARCHAR;"))
+            session.exec(text("ALTER TABLE issue ADD COLUMN IF NOT EXISTS issue_url VARCHAR;"))
             session.commit()
     except Exception:
         pass
@@ -57,6 +57,7 @@ app.include_router(tasks.router)
 app.include_router(issues.router)
 app.include_router(users.router)
 app.include_router(reports.router)
+app.include_router(activity.router)
 
 
 @app.get("/")
