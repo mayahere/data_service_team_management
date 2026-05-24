@@ -1,7 +1,7 @@
 import json
 import os
 from sqlmodel import Session, select
-from models import User, Project, Task, Issue, Attachment
+from models import User, Project, Task, Issue
 from database import engine
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -29,12 +29,6 @@ def load_all():
         session.add_all(projects)
         session.add_all(tasks)
         session.add_all(issues)
-
-        attachments_path = os.path.join(DATA_DIR, "attachments.json")
-        if os.path.exists(attachments_path):
-            attachments = [Attachment(**a) for a in _load("attachments.json")]
-            session.add_all(attachments)
-
         session.commit()
         print(
             f"[seed] Loaded {len(users)} users, {len(projects)} projects, "

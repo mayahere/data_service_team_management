@@ -17,9 +17,6 @@ import {
   Task,
   Issue,
   Alert,
-  KPI,
-  SLAMetric,
-  ProjectHealth,
   Project,
   ActivityEntry,
 } from "../types/dashboard";
@@ -27,14 +24,10 @@ import { classNames } from "../utils/formatters";
 
 interface DashboardViewProps {
   role: Role;
-  project: Project | null | undefined;
   projects: Project[];
   tasks: Task[];
   issues: Issue[];
   alerts: Alert[];
-  kpis: KPI[];
-  sla: SLAMetric;
-  projectHealth: ProjectHealth[];
   activities: ActivityEntry[];
 }
 

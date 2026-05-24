@@ -46,7 +46,4 @@ def require_role(*roles: str):
 
 
 require_manager           = require_role("Manager")
-require_leader            = require_role("Leader")
-require_operator          = require_role("Operator")
 require_manager_or_leader = require_role("Manager", "Leader")
-require_any               = require_role("Manager", "Leader", "Operator")

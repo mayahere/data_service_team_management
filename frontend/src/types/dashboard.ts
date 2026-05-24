@@ -4,7 +4,6 @@ export type IssueStatus = 'Open' | 'In Progress' | 'Resolved';
 export type IssuePriority = 'Critical' | 'High' | 'Medium' | 'Low';
 
 export type AlertType = 'breach' | 'risk' | 'issue' | 'info';
-export type TrendDirection = 'up' | 'down' | 'flat';
 export type Role = 'manager' | 'leader' | 'operator';
 
 export interface Project {
@@ -82,23 +81,6 @@ export interface DataOperator {
   currentLoad: number;
 }
 
-export interface SLAMetric {
-  compliance: number;
-  totalTasks: number;
-  approved: number;
-  inProgress: number;
-  notStarted: number;
-}
-
-export interface KPI {
-  label: string;
-  target: string | number;
-  current: string | number;
-  unit: string;
-  trend: TrendDirection;
-  trendValue?: string;
-}
-
 export interface Alert {
   id: string;
   type: AlertType;
@@ -108,16 +90,6 @@ export interface Alert {
   issueId?: string;
   acknowledged: boolean;
 }
-
-export interface ProjectHealth {
-  id: string;
-  name: string;
-  slaCompliance: number;
-  activeTasks: number;
-  openIssues: number;
-  status: 'healthy' | 'at-risk' | 'critical';
-}
-
 export interface AppUser {
   id: string;
   fullName: string;

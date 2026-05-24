@@ -63,15 +63,6 @@ def list_tasks(
     return [_enrich(session, t) for t in result]
 
 
-@router.get("/priority")
-def priority_tasks(n: int = 5, user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
-    base = _accessible_tasks(session, user)
-    priority_score = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
-    active = [t for t in base if t.status not in ("Approved", "Rejected")]
-    sorted_tasks = sorted(active, key=lambda t: (priority_score.get(t.task_priority, 9), t.due_date))
-    return [_enrich(session, t) for t in sorted_tasks[:n]]
-
-
 @router.get("/{task_id}")
 def get_task(task_id: str, user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
     t = session.get(Task, task_id)
