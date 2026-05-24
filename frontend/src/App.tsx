@@ -25,9 +25,6 @@ function AppContent() {
     operators,
     users,
     alerts,
-    kpis,
-    sla,
-    projectHealth,
     activities,
     loading,
     refresh,
@@ -69,8 +66,6 @@ function AppContent() {
   return (
     <div className="flex h-screen w-full bg-slate-50 overflow-hidden font-sans text-slate-900">
       <Sidebar
-        activeRole={activeRole}
-        onRoleChange={() => {}}
         alertCounts={alertCounts}
       />
       <main className="flex-1 overflow-y-auto relative">
@@ -86,7 +81,7 @@ function AppContent() {
             <Routes location={location}>
               <Route path="/" element={<Navigate to="/overview" replace />} />
               <Route path="/overview" element={
-                <DashboardView role={activeRole} project={project} projects={projects} tasks={tasks} issues={issues} alerts={alerts} kpis={kpis} sla={sla} projectHealth={projectHealth} activities={activities} />
+                <DashboardView role={activeRole} projects={projects} tasks={tasks} issues={issues} alerts={alerts} activities={activities} />
               } />
               <Route path="/projects" element={<ProjectsView projects={projects} users={users} refresh={refresh} />} />
               <Route path="/projects/:project_id/tasks" element={<TaskQueueView tasks={tasks} projects={projects} users={users} refresh={refresh} />} />

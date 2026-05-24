@@ -72,13 +72,6 @@ class AuditLog(SQLModel, table=True):
     timestamp: str
 
 
-class Attachment(SQLModel, table=True):
-    attachment_id: str = Field(primary_key=True)
-    issue_id: str = Field(index=True)
-    file_url: str
-    uploaded_by: str  # user_id
-    created_at: str
-
 
 # --- Request bodies ---
 

@@ -8,14 +8,11 @@ import {
   LogOut,
   FolderKanban,
 } from "lucide-react";
-import { Role } from "../types/dashboard";
 import { classNames } from "../utils/formatters";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface SidebarProps {
-  activeRole: Role;
-  onRoleChange: (role: Role) => void;
   alertCounts: {
     errors: number;
     tasksAtRisk: number;
@@ -24,8 +21,6 @@ interface SidebarProps {
   };
 }
 export function Sidebar({
-  activeRole: _activeRole,
-  onRoleChange: _onRoleChange,
   alertCounts,
 }: SidebarProps) {
   const { user, logout } = useAuth();

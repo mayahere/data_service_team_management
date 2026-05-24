@@ -59,15 +59,6 @@ def list_issues(
     return [_enrich(session, i) for i in result]
 
 
-@router.get("/priority")
-def priority_issues(n: int = 5, user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
-    priority_score = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
-    base = _accessible_issues(session, user)
-    open_issues = [i for i in base if i.status != "Resolved"]
-    sorted_issues = sorted(open_issues, key=lambda i: priority_score.get(i.issue_priority, 9))
-    return [_enrich(session, i) for i in sorted_issues[:n]]
-
-
 @router.get("/{issue_id}")
 def get_issue(issue_id: str, user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
     i = session.get(Issue, issue_id)

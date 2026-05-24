@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from sqlmodel import SQLModel
 from database import engine
 import seed
-from routers import auth_router, projects, tasks, issues, users, reports, activity
+from routers import auth_router, projects, tasks, issues, users, activity
 
 
 @asynccontextmanager
@@ -56,7 +56,6 @@ app.include_router(projects.router)
 app.include_router(tasks.router)
 app.include_router(issues.router)
 app.include_router(users.router)
-app.include_router(reports.router)
 app.include_router(activity.router)
 
 

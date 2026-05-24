@@ -3,13 +3,9 @@ import {
   Task,
   Issue,
   DataOperator,
-  SLAMetric,
-  KPI,
   Alert,
-  ProjectHealth,
   AppUser,
   ActivityEntry,
-  TrendDirection,
 } from '../types/dashboard';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -176,66 +172,6 @@ export function mapOperator(
 
 // ── Derived metrics ────────────────────────────────────────────────────────────
 
-export function computeSLAMetric(tasks: Task[]): SLAMetric {
-  const total = tasks.length;
-  const approved = tasks.filter((t) => t.status === 'Approved').length;
-  const inProgress = tasks.filter((t) => t.status === 'In Progress').length;
-  const notStarted = tasks.filter((t) => t.status === 'Not Started').length;
-  const compliance = total > 0 ? Math.round((approved / total) * 100) : 0;
-  return { compliance, totalTasks: total, approved, inProgress, notStarted };
-}
-
-export function computeKPIs(
-  tasks: Task[],
-  issues: Issue[],
-  operators: DataOperator[],
-): KPI[] {
-  const total = tasks.length;
-  const approved = tasks.filter((t) => t.status === 'Approved').length;
-  const inProgress = tasks.filter((t) => t.status === 'In Progress').length;
-  const openCritical = issues.filter(
-    (i) => i.issuePriority === 'Critical' && i.status !== 'Resolved',
-  ).length;
-  const avgLoad =
-    operators.length > 0
-      ? Math.round(operators.reduce((s, o) => s + o.currentLoad, 0) / operators.length)
-      : 0;
-
-  const trend = (val: number, threshold: number): TrendDirection =>
-    val > threshold ? 'up' : val < threshold ? 'down' : 'flat';
-
-  return [
-    {
-      label: 'Tasks Approved',
-      target: total,
-      current: approved,
-      unit: '',
-      trend: trend(approved, total * 0.5),
-    },
-    {
-      label: 'In Progress',
-      target: total,
-      current: inProgress,
-      unit: '',
-      trend: 'flat',
-    },
-    {
-      label: 'Critical Issues',
-      target: 0,
-      current: openCritical,
-      unit: '',
-      trend: openCritical > 2 ? 'up' : 'down',
-    },
-    {
-      label: 'Team Load',
-      target: '70%',
-      current: `${avgLoad}%`,
-      unit: '',
-      trend: avgLoad > 75 ? 'up' : 'flat',
-    },
-  ];
-}
-
 export function generateAlerts(tasks: Task[], issues: Issue[]): Alert[] {
   const alerts: Alert[] = [];
   const now = new Date().toISOString();
@@ -275,34 +211,4 @@ export function generateAlerts(tasks: Task[], issues: Issue[]): Alert[] {
   return alerts;
 }
 
-export function computeProjectHealth(
-  projects: Project[],
-  tasks: Task[],
-  issues: Issue[],
-): ProjectHealth[] {
-  return projects.map((p) => {
-    const openIssues = issues.filter(
-      (i) => i.projectId === p.id && i.status !== 'Resolved',
-    );
-    const activeTasks = tasks.filter(
-      (t) => t.projectId === p.id && t.status !== 'Approved' && t.status !== 'Rejected',
-    ).length;
 
-    const sla = p.slaStatus.slaActual ?? 0;
-    const status: ProjectHealth['status'] =
-      openIssues.filter((i) => i.issuePriority === 'Critical').length > 0 || sla < 75
-        ? 'critical'
-        : openIssues.length > 2 || sla < p.slaStatus.slaTarget
-          ? 'at-risk'
-          : 'healthy';
-
-    return {
-      id: p.id,
-      name: p.name,
-      slaCompliance: sla,
-      activeTasks,
-      openIssues: openIssues.length,
-      status,
-    };
-  });
-}

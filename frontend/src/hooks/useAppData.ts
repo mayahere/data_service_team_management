@@ -7,20 +7,14 @@ import {
   mapOperator,
   mapAppUser,
   mapActivityEntry,
-  computeSLAMetric,
-  computeKPIs,
   generateAlerts,
-  computeProjectHealth,
 } from '../utils/dataMapper';
 import {
   Project,
   Task,
   Issue,
   DataOperator,
-  SLAMetric,
-  KPI,
   Alert,
-  ProjectHealth,
   AppUser,
   ActivityEntry,
 } from '../types/dashboard';
@@ -33,22 +27,11 @@ export interface AppData {
   operators: DataOperator[];
   users: AppUser[];
   alerts: Alert[];
-  kpis: KPI[];
-  sla: SLAMetric;
-  projectHealth: ProjectHealth[];
   activities: ActivityEntry[];
   loading: boolean;
   fetchError: string | null;
   refresh: () => void;
 }
-
-const EMPTY_SLA: SLAMetric = {
-  compliance: 0,
-  totalTasks: 0,
-  approved: 0,
-  inProgress: 0,
-  notStarted: 0,
-};
 
 export function useAppData(userId?: string): AppData {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -57,9 +40,6 @@ export function useAppData(userId?: string): AppData {
   const [operators, setOperators] = useState<DataOperator[]>([]);
   const [users, setUsers] = useState<AppUser[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [kpis, setKpis] = useState<KPI[]>([]);
-  const [sla, setSla] = useState<SLAMetric>(EMPTY_SLA);
-  const [projectHealth, setProjectHealth] = useState<ProjectHealth[]>([]);
   const [activities, setActivities] = useState<ActivityEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -102,20 +82,14 @@ export function useAppData(userId?: string): AppData {
           .filter((u) => u.role === 'Operator')
           .map((u) => mapOperator(u, mappedTasks, mappedIssues));
 
-        const mappedSLA = computeSLAMetric(mappedTasks);
-        const mappedKPIs = computeKPIs(mappedTasks, mappedIssues, mappedOperators);
         const mappedAlerts = generateAlerts(mappedTasks, mappedIssues);
-        const mappedHealth = computeProjectHealth(mappedProjects, mappedTasks, mappedIssues);
 
         setProjects(mappedProjects);
         setTasks(mappedTasks);
         setIssues(mappedIssues);
         setOperators(mappedOperators);
         setUsers(mappedUsers);
-        setSla(mappedSLA);
-        setKpis(mappedKPIs);
         setAlerts(mappedAlerts);
-        setProjectHealth(mappedHealth);
         setActivities(rawActivity.map(mapActivityEntry));
       } catch (err: unknown) {
         if (!cancelled) {
@@ -141,9 +115,6 @@ export function useAppData(userId?: string): AppData {
     operators,
     users,
     alerts,
-    kpis,
-    sla,
-    projectHealth,
     activities,
     loading,
     fetchError,
