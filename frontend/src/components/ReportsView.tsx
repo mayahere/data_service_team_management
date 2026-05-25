@@ -72,7 +72,7 @@ export function ReportsView({ projects, tasks, issues }: ReportsViewProps) {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-8 w-full space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -417,7 +417,11 @@ export function ReportsView({ projects, tasks, issues }: ReportsViewProps) {
                                 : "bg-slate-100 text-slate-500",
                         )}
                       >
-                        {p.slaStatus.status}
+                        {p.slaStatus.status === "Met"
+                          ? "Achieved"
+                          : p.slaStatus.status === "Breached"
+                            ? "Breached"
+                            : p.slaStatus.status}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">

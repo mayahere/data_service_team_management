@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import api from '../../api';
 import { Task, Project, AppUser } from '../../types/dashboard';
+import { useAuth } from '../../context/AuthContext';
 
 interface TaskFormData {
   title: string;
@@ -49,6 +50,8 @@ export function TaskModal({
   onSaved,
   onError,
 }: TaskModalProps) {
+  const { user } = useAuth();
+  const canManage = user?.role === 'Manager' || user?.role === 'Leader';
   const [form, setForm] = useState<TaskFormData>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof TaskFormData, string>>>({});
   const [loading, setLoading] = useState(false);
@@ -244,10 +247,11 @@ export function TaskModal({
                   </label>
                   <input
                     type="date"
-                    className={`${inputCls} border-slate-200 bg-slate-50`}
+                    className={`${inputCls} ${canManage ? 'border-slate-200' : 'border-slate-200 bg-slate-50'}`}
                     value={form.due_date}
-                    disabled
-                    title="Due date is automatically set by # Days turn-around"
+                    onChange={(e) => set('due_date', e.target.value)}
+                    disabled={!canManage}
+                    title={canManage ? '' : 'Due date is automatically set by # Days turn-around'}
                   />
                 </div>
               </div>

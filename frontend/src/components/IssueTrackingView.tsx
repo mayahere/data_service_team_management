@@ -154,7 +154,7 @@ export function IssueTrackingView({ issues, projects, tasks, users, refresh }: I
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-8 w-full space-y-6">
       {/* Header */}
       <div className="flex justify-between items-end mb-2">
         <div>
