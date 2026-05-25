@@ -45,6 +45,7 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
     key: keyof Task | "project";
     direction: "asc" | "desc";
   } | null>(null);
+  const [editingDueDateTaskId, setEditingDueDateTaskId] = useState<string | null>(null);
 
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -169,7 +170,7 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-8 w-full space-y-6">
       {/* Header */}
       <div className="flex justify-between items-end mb-2">
         <div>
@@ -367,16 +368,77 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                         {task.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {task.dueDate ? (
-                        <div className="flex items-center">
-                          <span className={classNames("text-sm", isOverdue ? "text-red-600 font-medium" : "text-slate-600")}>
-                            {new Date(task.dueDate).toLocaleDateString("en-GB")}
-                          </span>
-                          {isOverdue && <AlertCircle className="w-3 h-3 text-red-500 ml-1.5" />}
-                        </div>
+                    <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      {canManage && editingDueDateTaskId === task.id ? (
+                        <input
+                          type="date"
+                          className="border border-slate-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          value={task.dueDate ? task.dueDate.split("T")[0] : ""}
+                          onChange={async (e) => {
+                            const newDate = e.target.value;
+                            if (newDate) {
+                              try {
+                                await api.put(`/tasks/${task.id}`, {
+                                  title: task.title,
+                                  description: task.description,
+                                  url: task.url,
+                                  task_note: task.taskNote,
+                                  type: task.type,
+                                  task_priority: task.taskPriority,
+                                  assignee_id: task.assigneeId,
+                                  reviewer_id: task.reviewerId,
+                                  due_date: newDate,
+                                });
+                                addToast("Due date updated", "success");
+                                refresh();
+                              } catch (err: unknown) {
+                                const msg = (err as any)?.response?.data?.detail ?? "Failed to update due date";
+                                addToast(msg, "error");
+                              }
+                            }
+                            setEditingDueDateTaskId(null);
+                          }}
+                          onBlur={() => setEditingDueDateTaskId(null)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.currentTarget.blur();
+                            } else if (e.key === "Escape") {
+                              setEditingDueDateTaskId(null);
+                            }
+                          }}
+                          autoFocus
+                        />
                       ) : (
-                        <span className="text-sm text-slate-400 italic">No date</span>
+                        <div 
+                          className={classNames(
+                            "flex items-center",
+                            canManage && "cursor-pointer hover:bg-slate-100 p-1 rounded transition-colors group/date"
+                          )}
+                          onClick={() => {
+                            if (canManage) {
+                              setEditingDueDateTaskId(task.id);
+                            }
+                          }}
+                        >
+                          {task.dueDate ? (
+                            <>
+                              <span className={classNames("text-sm", isOverdue ? "text-red-600 font-medium" : "text-slate-600")}>
+                                {new Date(task.dueDate).toLocaleDateString("en-GB")}
+                              </span>
+                              {isOverdue && <AlertCircle className="w-3.5 h-3.5 text-red-500 ml-1.5 flex-shrink-0" />}
+                              {canManage && (
+                                <Pencil className="w-3 h-3 text-slate-400 opacity-0 group-hover/date:opacity-100 ml-2 transition-opacity" />
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-sm text-slate-400 italic">No date</span>
+                              {canManage && (
+                                <Pencil className="w-3 h-3 text-slate-400 opacity-0 group-hover/date:opacity-100 ml-2 transition-opacity" />
+                              )}
+                            </>
+                          )}
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

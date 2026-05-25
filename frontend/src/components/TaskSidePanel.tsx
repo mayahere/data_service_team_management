@@ -6,6 +6,7 @@ import { Task, Project, AppUser, Issue } from '../types/dashboard';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { mapIssue } from '../utils/dataMapper';
+import { useAuth } from '../context/AuthContext';
 
 interface TaskSidePanelProps {
   open: boolean;
@@ -28,6 +29,10 @@ export function TaskSidePanel({
   onError,
 }: TaskSidePanelProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isManager = user?.role === 'Manager';
+  const isLeader = user?.role === 'Leader';
+  const canManage = isManager || isLeader;
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loadingIssues, setLoadingIssues] = useState(false);
   
@@ -43,6 +48,7 @@ export function TaskSidePanel({
   const [editTitle, setEditTitle] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [editUrl, setEditUrl] = useState('');
+  const [editDueDate, setEditDueDate] = useState('');
   const [savingInline, setSavingInline] = useState(false);
 
   useEffect(() => {
@@ -134,6 +140,7 @@ export function TaskSidePanel({
     setEditTitle(task.title);
     setEditDesc(task.description || '');
     setEditUrl(task.url || '');
+    setEditDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
     setIsInlineEditing(true);
   };
 
@@ -154,6 +161,7 @@ export function TaskSidePanel({
         task_priority: task.taskPriority,
         assignee_id: task.assigneeId,
         reviewer_id: task.reviewerId,
+        due_date: canManage ? (editDueDate || null) : task.dueDate,
       });
       onTaskUpdate();
       setIsInlineEditing(false);
@@ -260,7 +268,16 @@ export function TaskSidePanel({
                   <div className="flex items-center gap-3 text-sm font-medium">
                     <span className="text-slate-700 px-2 py-1 bg-slate-100 rounded-md">{projectCode}</span>
                     <span className="text-slate-700 px-2 py-1 bg-slate-100 rounded-md">{task.type}</span>
-                    <span className="text-slate-400">{displayDate}</span>
+                    {isInlineEditing && canManage ? (
+                      <input
+                        type="date"
+                        className="text-sm border border-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700"
+                        value={editDueDate}
+                        onChange={(e) => setEditDueDate(e.target.value)}
+                      />
+                    ) : (
+                      <span className="text-slate-400">{displayDate}</span>
+                    )}
                   </div>
                   <select
                     value={status}

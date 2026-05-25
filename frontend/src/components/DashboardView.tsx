@@ -186,7 +186,7 @@ export function DashboardView({
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-8 w-full space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
@@ -543,7 +543,11 @@ export function DashboardView({
                                 : "bg-slate-100 text-slate-500",
                         )}
                       >
-                        {p.slaStatus.status}
+                        {p.slaStatus.status === "Met"
+                          ? "Achieved"
+                          : p.slaStatus.status === "Breached"
+                            ? "Breached"
+                            : p.slaStatus.status}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">

@@ -3,9 +3,10 @@ import {
   Plus,
   Pencil,
   Trash2,
-  CheckCircle2,
+  Check,
+  X,
+  HelpCircle,
   AlertTriangle,
-  XCircle,
 } from "lucide-react";
 import { Project, AppUser } from "../types/dashboard";
 import { ProjectModal } from "./modals/ProjectModal";
@@ -23,17 +24,24 @@ interface ProjectsViewProps {
 }
 
 const SLA_STATUS_COLORS: Record<string, string> = {
-  Healthy: "text-emerald-600 bg-emerald-50",
-  "At Risk": "text-amber-600 bg-amber-50",
-  Breached: "text-red-600 bg-red-50",
-  "No Data": "text-slate-500 bg-slate-50",
+  Met: "text-emerald-600 bg-emerald-50 border border-emerald-100",
+  "At Risk": "text-amber-600 bg-amber-50 border border-amber-200",
+  Breached: "text-red-600 bg-red-50 border border-red-200",
+  "No Data": "text-slate-500 bg-slate-50 border border-slate-200",
 };
 
-const SLA_STATUS_ICONS: Record<string, typeof CheckCircle2> = {
-  Healthy: CheckCircle2,
+const SLA_STATUS_ICONS: Record<string, typeof Check> = {
+  Met: Check,
   "At Risk": AlertTriangle,
-  Breached: XCircle,
-  "No Data": AlertTriangle,
+  Breached: X,
+  "No Data": HelpCircle,
+};
+
+const SLA_STATUS_LABELS: Record<string, string> = {
+  Met: "Achieved",
+  "At Risk": "At Risk",
+  Breached: "Breached",
+  "No Data": "No Data",
 };
 
 export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
@@ -76,7 +84,7 @@ export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-8 w-full space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -226,7 +234,7 @@ export function ProjectsView({ projects, users, refresh }: ProjectsViewProps) {
                         )}
                       >
                         <SlaIcon className="w-3 h-3" />
-                        {slaStatus}
+                        {SLA_STATUS_LABELS[slaStatus] ?? slaStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

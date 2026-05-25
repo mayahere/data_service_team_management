@@ -83,12 +83,12 @@ def create_task(body: TaskCreate, user: dict = Depends(require_manager_or_leader
 
     now_dt = datetime.datetime.utcnow()
     now = now_dt.isoformat()
-    due_date = (now_dt + datetime.timedelta(days=3)).isoformat()
 
     new_id = f"t{uuid.uuid4().hex[:6]}"
     body_dict = body.model_dump()
-    if "due_date" in body_dict:
-        del body_dict["due_date"]
+    due_date = body_dict.pop("due_date", None)
+    if not due_date or due_date.strip() == "":
+        due_date = (now_dt + datetime.timedelta(days=3)).isoformat()
 
     task = Task(
         task_id=new_id,
