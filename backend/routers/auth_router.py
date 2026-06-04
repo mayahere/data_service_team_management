@@ -32,3 +32,44 @@ def me(user: dict = Depends(get_current_user)):
         "email": user["email"],
         "role": user["role"],
     }
+
+
+@router.post("/setup")
+def setup_database(session: Session = Depends(get_session)):
+    import seed
+    from models import Project, Task, Issue
+    
+    created_users = []
+    try:
+        users_data = seed._load("users.json")
+        for u_data in users_data:
+            existing = session.exec(select(User).where(User.email == u_data["email"])).first()
+            if not existing:
+                new_user = User(**u_data)
+                session.add(new_user)
+                created_users.append(u_data["email"])
+        
+        projects_data = seed._load("projects.json")
+        for p_data in projects_data:
+            existing = session.exec(select(Project).where(Project.project_id == p_data["project_id"])).first()
+            if not existing:
+                session.add(Project(**p_data))
+                
+        tasks_data = seed._load("tasks.json")
+        for t_data in tasks_data:
+            existing = session.exec(select(Task).where(Task.task_id == t_data["task_id"])).first()
+            if not existing:
+                session.add(Task(**t_data))
+                
+        issues_data = seed._load("issues.json")
+        for i_data in issues_data:
+            existing = session.exec(select(Issue).where(Issue.issue_id == i_data["issue_id"])).first()
+            if not existing:
+                session.add(Issue(**i_data))
+                
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Seeding failed: {str(e)}")
+        
+    return {"status": "success", "created_users": created_users}

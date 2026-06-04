@@ -2,7 +2,7 @@ import uuid
 import datetime
 import shutil
 import os
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlmodel import Session, select
 from sqlalchemy import func
 from database import get_session
@@ -150,7 +150,7 @@ def update_issue(issue_id: str, body: IssueUpdate, user: dict = Depends(get_curr
     return _enrich(session, i)
 
 @router.post("/{issue_id}/upload")
-def upload_issue_image(issue_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
+def upload_issue_image(issue_id: str, request: Request, file: UploadFile = File(...), user: dict = Depends(get_current_user), session: Session = Depends(get_session)):
     i = session.get(Issue, issue_id)
     if not i:
         raise HTTPException(status_code=404, detail="Issue not found")
@@ -170,7 +170,7 @@ def upload_issue_image(issue_id: str, file: UploadFile = File(...), user: dict =
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    i.issue_url = f"http://localhost:8000/uploads/{filename}"
+    i.issue_url = f"{request.base_url}uploads/{filename}"
     session.add(i)
     session.commit()
     session.refresh(i)

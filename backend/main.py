@@ -40,9 +40,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Data Operations Dashboard", version="2.0.0", lifespan=lifespan)
 
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
