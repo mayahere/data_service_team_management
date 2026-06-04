@@ -304,7 +304,7 @@ export function TaskQueueView({ tasks, projects, users, refresh }: TaskQueueView
                 const isOverdue = task.dueDate && new Date(task.dueDate).getTime() < Date.now();
                 const canDelete = canManage && task.status === "Not Started";
                 const canReview = (canManage || task.reviewerId === user?.userId) && task.status === "Completed";
-                const canUpdateStatus = task.status !== "Approved" && task.status !== "Rejected" && task.status !== "Completed";
+                const canUpdateStatus = true;
                 return (
                   <tr 
                     key={task.id} 
