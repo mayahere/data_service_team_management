@@ -150,16 +150,12 @@ def update_task_status(task_id: str, body: TaskStatusUpdate, user: dict = Depend
             raise HTTPException(status_code=403, detail="Access denied")
 
     new_status = body.status
-    allowed = VALID_TRANSITIONS.get(t.status, set())
-    if new_status not in allowed:
+    valid_statuses = {"Not Started", "In Progress", "Completed", "Approved", "Rejected"}
+    if new_status not in valid_statuses:
         raise HTTPException(
             status_code=400,
-            detail=f"Cannot transition from '{t.status}' to '{new_status}'. Allowed: {sorted(allowed) or 'none'}",
+            detail=f"Invalid status: '{new_status}'. Allowed: {sorted(list(valid_statuses))}",
         )
-
-    # Operators cannot approve/reject
-    if user["role"] == "Operator" and new_status in ("Approved", "Rejected"):
-        raise HTTPException(status_code=403, detail="Only Leaders or Managers can approve or reject tasks")
 
     old_status = t.status
     t.status = new_status

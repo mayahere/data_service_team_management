@@ -4,13 +4,7 @@ import { X, ArrowRight } from 'lucide-react';
 import api from '../../api';
 import { Task, TaskStatus } from '../../types/dashboard';
 
-const VALID_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  'Not Started': ['In Progress'],
-  'In Progress': ['Completed'],
-  'Completed': [],
-  'Approved': [],
-  'Rejected': ['In Progress'],
-};
+const ALL_STATUSES: TaskStatus[] = ['Not Started', 'In Progress', 'Completed', 'Approved', 'Rejected'];
 
 const STATUS_COLORS: Record<TaskStatus, string> = {
   'Not Started': 'bg-slate-100 text-slate-700 border-slate-200',
@@ -38,7 +32,7 @@ export function StatusModal({ open, task, onClose, onSaved, onError }: StatusMod
 
   if (!task) return null;
 
-  const nextStatuses = VALID_TRANSITIONS[task.status] ?? [];
+  const nextStatuses = ALL_STATUSES.filter(s => s !== task.status);
 
   async function handleSubmit() {
     if (!selected || !task) return;
