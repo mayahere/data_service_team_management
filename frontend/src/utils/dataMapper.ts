@@ -50,6 +50,8 @@ export function mapAppUser(u: Record<string, unknown>): AppUser {
     email: String(u.email),
     role: String(u.role),
     isActive: Boolean(u.is_active),
+    createdAt: String(u.created_at ?? ''),
+    endDate: u.end_date ? String(u.end_date) : null,
   };
 }
 
@@ -71,6 +73,8 @@ export function mapProject(p: Record<string, unknown>): Project {
     leaderName: p.leader_name ? String(p.leader_name) : null,
     taskCount: Number(p.task_count ?? 0),
     issueCount: Number(p.issue_count ?? 0),
+    createdAt: String(p.created_at ?? ''),
+    updatedAt: String(p.updated_at ?? ''),
     slaStatus: {
       status: raw_sla ? String(raw_sla.status ?? 'No Data') : 'No Data',
       slaActual: raw_sla?.sla_actual != null ? Number(raw_sla.sla_actual) : null,
@@ -123,6 +127,7 @@ export function mapIssue(i: Record<string, unknown>): Issue {
     issueNote: i.issue_note ? String(i.issue_note) : null,
     issueUrl: i.issue_url ? String(i.issue_url) : null,
     createdAt: String(i.created_at ?? new Date().toISOString()),
+    updatedAt: String(i.updated_at ?? new Date().toISOString()),
     assigneeName: i.assignee_name ? String(i.assignee_name) : null,
     reviewerName: i.reviewer_name ? String(i.reviewer_name) : null,
     taskTitle: i.task_title ? String(i.task_title) : null,

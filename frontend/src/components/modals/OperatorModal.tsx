@@ -10,6 +10,7 @@ interface OperatorFormData {
   password: string;
   role: string;
   is_active: boolean;
+  end_date: string;
 }
 
 interface OperatorModalProps {
@@ -26,6 +27,7 @@ const EMPTY: OperatorFormData = {
   password: '',
   role: 'Operator',
   is_active: true,
+  end_date: '',
 };
 
 export function OperatorModal({ open, operator, onClose, onSaved, onError }: OperatorModalProps) {
@@ -44,6 +46,7 @@ export function OperatorModal({ open, operator, onClose, onSaved, onError }: Ope
           password: '',
           role: operator.role,
           is_active: operator.isActive,
+          end_date: operator.endDate ?? '',
         });
       } else {
         setForm(EMPTY);
@@ -71,6 +74,7 @@ export function OperatorModal({ open, operator, onClose, onSaved, onError }: Ope
         full_name: form.full_name,
         email: form.email,
         role: form.role,
+        end_date: form.end_date || null,
       };
       if (!isEdit) {
         payload.password = form.password;
@@ -142,6 +146,7 @@ export function OperatorModal({ open, operator, onClose, onSaved, onError }: Ope
             <form onSubmit={handleSubmit} className="space-y-4">
               {field('Full Name', 'full_name', 'text', 'Jane Smith')}
               {field('Email', 'email', 'email', 'jane@example.com')}
+              {field('End Date', 'end_date', 'date')}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">

@@ -96,8 +96,15 @@ def create_project(body: ProjectCreate, user: dict = Depends(require_manager), s
     if not leader or leader.role != "Leader":
         raise HTTPException(status_code=400, detail="leader_id must reference a user with Leader role")
 
+    import datetime
+    now = datetime.datetime.utcnow().isoformat()
     new_id = f"p{uuid.uuid4().hex[:6]}"
-    project = Project(project_id=new_id, **body.model_dump())
+    project = Project(
+        project_id=new_id,
+        created_at=now,
+        updated_at=now,
+        **body.model_dump()
+    )
     session.add(project)
     session.commit()
     session.refresh(project)
@@ -112,6 +119,11 @@ def update_project(project_id: str, body: ProjectUpdate, user: dict = Depends(re
 
     updates = body.model_dump(exclude_none=True)
 
+    if "project_code" in updates:
+        existing = session.exec(select(Project).where(Project.project_code == updates["project_code"], Project.project_id != project_id)).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="project_code already exists")
+
     if "leader_id" in updates:
         leader = session.get(User, updates["leader_id"])
         if not leader or leader.role != "Leader":
@@ -125,6 +137,9 @@ def update_project(project_id: str, body: ProjectUpdate, user: dict = Depends(re
 
     for key, value in updates.items():
         setattr(p, key, value)
+        
+    import datetime
+    p.updated_at = datetime.datetime.utcnow().isoformat()
         
     session.add(p)
     session.commit()

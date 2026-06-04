@@ -19,6 +19,8 @@ export interface Project {
   leaderName: string | null;
   taskCount: number;
   issueCount: number;
+  createdAt: string;
+  updatedAt: string;
   slaStatus: {
     status: string;
     slaActual: number | null;  // breach % of approved tasks that exceeded sla_target days
@@ -63,6 +65,7 @@ export interface Issue {
   issueNote: string | null;
   issueUrl: string | null;
   createdAt: string;
+  updatedAt: string;
   assigneeName: string | null;
   reviewerName: string | null;
   taskTitle: string | null;
@@ -96,6 +99,8 @@ export interface AppUser {
   email: string;
   role: string;
   isActive: boolean;
+  createdAt: string;
+  endDate: string | null;
 }
 
 export interface ActivityEntry {

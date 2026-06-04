@@ -9,7 +9,9 @@ class User(SQLModel, table=True):
     email: str = Field(index=True)
     password: str
     role: str  # Manager | Leader | Operator
+    end_date: Optional[str] = Field(default=None)
     is_active: bool = True
+    created_at: str
 
 
 class Project(SQLModel, table=True):
@@ -21,7 +23,9 @@ class Project(SQLModel, table=True):
     end_date: str
     leader_id: str = Field(index=True)
     status: str  # Active | Completed | On Hold
-    sla_target: float = 7.0  # days to approve from created_at
+    created_at: str
+    updated_at: str
+    sla_target: float = 3.0  # days to approve from created_at
 
 
 class Task(SQLModel, table=True):
@@ -58,6 +62,7 @@ class Issue(SQLModel, table=True):
     issue_note: Optional[str] = None
     issue_url: Optional[str] = None
     created_at: str
+    updated_at: str
 
 
 class AuditLog(SQLModel, table=True):
@@ -88,10 +93,11 @@ class ProjectCreate(BaseModel):
     end_date: str
     leader_id: str
     status: str = "Active"
-    sla_target: float = 7.0  # days
+    sla_target: float = 3.0  # days
 
 
 class ProjectUpdate(BaseModel):
+    project_code: Optional[str] = None
     project_name: Optional[str] = None
     description: Optional[str] = None
     start_date: Optional[str] = None

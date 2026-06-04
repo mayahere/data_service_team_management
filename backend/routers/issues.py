@@ -100,6 +100,7 @@ def create_issue(body: IssueCreate, user: dict = Depends(get_current_user), sess
         issue_code=issue_code,
         status="Open",
         created_at=now,
+        updated_at=now,
         due_date=due_date,
         **body_dict,
     )
@@ -134,6 +135,7 @@ def update_issue(issue_id: str, body: IssueUpdate, user: dict = Depends(get_curr
     for key, value in updates.items():
         setattr(i, key, value)
 
+    i.updated_at = datetime.datetime.utcnow().isoformat()
     new_status = i.status
     project = session.get(Project, i.project_id)
     pname = project.project_name if project else ""
