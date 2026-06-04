@@ -34,6 +34,29 @@ async def lifespan(app: FastAPI):
             session.commit()
     except Exception:
         pass
+    try:
+        from sqlmodel import Session, text
+        with Session(engine) as session:
+            session.exec(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS end_date VARCHAR;'))
+            session.exec(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS created_at VARCHAR;'))
+            session.commit()
+    except Exception:
+        pass
+    try:
+        from sqlmodel import Session, text
+        with Session(engine) as session:
+            session.exec(text("ALTER TABLE project ADD COLUMN IF NOT EXISTS created_at VARCHAR;"))
+            session.exec(text("ALTER TABLE project ADD COLUMN IF NOT EXISTS updated_at VARCHAR;"))
+            session.commit()
+    except Exception:
+        pass
+    try:
+        from sqlmodel import Session, text
+        with Session(engine) as session:
+            session.exec(text("ALTER TABLE issue ADD COLUMN IF NOT EXISTS updated_at VARCHAR;"))
+            session.commit()
+    except Exception:
+        pass
     seed.load_all()
     yield
 

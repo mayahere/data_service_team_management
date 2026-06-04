@@ -572,6 +572,9 @@ export function PerformanceView({
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    End Date
+                  </th>
                   {isManager && (
                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       Actions
@@ -641,6 +644,9 @@ export function PerformanceView({
                         </span>
                       )}
                     </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-sm text-slate-500">
+                      {u.endDate}
+                    </td>
                     {isManager && (
                       <td className="px-6 py-3 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -666,7 +672,7 @@ export function PerformanceView({
                 {filteredMembers.length === 0 && (
                   <tr>
                     <td
-                      colSpan={isManager ? 5 : 4}
+                      colSpan={isManager ? 6 : 5}
                       className="px-6 py-10 text-center text-sm text-slate-500"
                     >
                       No members found.

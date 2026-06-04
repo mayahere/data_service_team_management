@@ -15,6 +15,7 @@ class UserCreate(BaseModel):
     email: str
     password: str
     role: str
+    end_date: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
@@ -23,6 +24,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
+    end_date: Optional[str] = None
 
 
 def _safe(u) -> dict:
@@ -32,6 +34,8 @@ def _safe(u) -> dict:
         "email": u.email,
         "role": u.role,
         "is_active": u.is_active,
+        "end_date": u.end_date,
+        "created_at": u.created_at,
     }
 
 
@@ -61,6 +65,7 @@ def create_user(body: UserCreate, user: dict = Depends(get_current_user), sessio
     existing = session.exec(select(User).where(User.email == body.email)).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already in use")
+    import datetime
     new_user = User(
         user_id=str(uuid.uuid4()),
         full_name=body.full_name,
@@ -68,6 +73,8 @@ def create_user(body: UserCreate, user: dict = Depends(get_current_user), sessio
         password=body.password,
         role=body.role,
         is_active=True,
+        end_date=body.end_date,
+        created_at=datetime.datetime.utcnow().isoformat(),
     )
     session.add(new_user)
     session.commit()
@@ -94,6 +101,8 @@ def update_user(user_id: str, body: UserUpdate, user: dict = Depends(get_current
         u.role = body.role
     if body.is_active is not None:
         u.is_active = body.is_active
+    if body.end_date is not None:
+        u.end_date = body.end_date
     session.commit()
     session.refresh(u)
     return _safe(u)
