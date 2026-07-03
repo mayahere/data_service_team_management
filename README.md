@@ -78,3 +78,20 @@ npm run dev
 ```
 
 The application will be accessible at `http://localhost:5173`.
+
+---
+
+## Demo Accounts
+
+The system seeds the following accounts on first run (`backend/data/users.json`), one per role. Password for all accounts is `password123`.
+
+| Role | Name | Email |
+| --- | --- | --- |
+| Manager | Alex Morgan | `manager@nexus.com` |
+| Leader | Maya Tran | `leader.ESG@nexus.com` |
+| Leader | William Anderson | `leader.Banking@nexus.com` |
+| Operator | Nguyen Hanh | `op.hanh@nexus.com` |
+| Operator | Adam Tran | `op.adam@nexus.com` |
+| Operator | Amy Do | `op.amy@nexus.com` |
+| Operator | Sarah Kim | `op.sarah@nexus.com` |
+| Operator | Keith Duong | `op.keith@nexus.com` |
